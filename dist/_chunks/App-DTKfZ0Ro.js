@@ -8,7 +8,7 @@ const React = require("react");
 const reactIntl = require("react-intl");
 const styled = require("styled-components");
 const icons = require("@strapi/icons");
-const index = require("./index-BfaIOluA.js");
+const index = require("./index-Bnzi3IZL.js");
 const luxon = require("luxon");
 const upchunk = require("@mux/upchunk");
 const formik = require("formik");
@@ -1135,7 +1135,7 @@ const Header = (props) => {
   ] });
 };
 const name = "strapi-plugin-mux-video-uploader";
-const version = "3.2.0";
+const version = "3.2.1";
 const description = "This plugin allows you to upload your content to Mux and use it with Strapi.";
 const license = "MIT";
 const type = "commonjs";
@@ -1792,4 +1792,4 @@ const App = () => {
   ] });
 };
 exports.default = App;
-//# sourceMappingURL=App-Cof0vGB7.js.map
+//# sourceMappingURL=App-DTKfZ0Ro.js.map
