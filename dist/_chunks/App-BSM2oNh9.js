@@ -8,7 +8,7 @@ const React = require("react");
 const reactIntl = require("react-intl");
 const styled = require("styled-components");
 const icons = require("@strapi/icons");
-const index = require("./index-Bnzi3IZL.js");
+const index = require("./index-yFJ2WptN.js");
 const luxon = require("luxon");
 const upchunk = require("@mux/upchunk");
 const formik = require("formik");
@@ -478,7 +478,7 @@ function TrackForm({
     e.preventDefault();
     if (!muxAsset?.playback_id || !track.stored_track)
       return;
-    const token = await video(muxAsset);
+    const token = muxAsset.signed ? await video(muxAsset) : null;
     const trackUrl = getMuxTextTrackUrl({
       playback_id: muxAsset.playback_id,
       track: track.stored_track,
@@ -1792,4 +1792,4 @@ const App = () => {
   ] });
 };
 exports.default = App;
-//# sourceMappingURL=App-DTKfZ0Ro.js.map
+//# sourceMappingURL=App-BSM2oNh9.js.map
