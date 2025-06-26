@@ -52,7 +52,8 @@ function TrackForm({
     e.preventDefault();
     if (!muxAsset?.playback_id || !track.stored_track) return;
 
-    const token = await video(muxAsset);
+    // Only request token for signed assets
+    const token = muxAsset.signed ? await video(muxAsset) : null;
 
     const trackUrl = getMuxTextTrackUrl({
       playback_id: muxAsset.playback_id,
