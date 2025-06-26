@@ -200,7 +200,7 @@ const pluginId$1 = PLUGIN_NAME;
 const ASSET_MODEL = `plugin::${pluginId$1}.mux-asset`;
 const TEXT_TRACK_MODEL = `plugin::${pluginId$1}.mux-text-track`;
 const resolveMuxAsset = async (filters) => {
-  const muxAssets = await strapi.db.query(ASSET_MODEL).findMany({
+  const muxAssets = await strapi.documents(ASSET_MODEL).findMany({
     filters
   });
   const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
@@ -608,7 +608,7 @@ const processWebhookEvent = async (webhookEvent) => {
     case "video.upload.asset_created": {
       const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: { asset_id: data.asset_id }
         }
@@ -617,7 +617,7 @@ const processWebhookEvent = async (webhookEvent) => {
     case "video.asset.ready": {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             playback_id: data.playback_ids[0].id,
@@ -632,7 +632,7 @@ const processWebhookEvent = async (webhookEvent) => {
     case "video.asset.updated": {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             asset_data: data
@@ -643,7 +643,7 @@ const processWebhookEvent = async (webhookEvent) => {
     case "video.asset.static_renditions.ready": {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             asset_data: data
@@ -655,7 +655,7 @@ const processWebhookEvent = async (webhookEvent) => {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
       const completeAssetData = await getService("mux").getAssetById(data.asset_id);
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             asset_data: completeAssetData
@@ -667,7 +667,7 @@ const processWebhookEvent = async (webhookEvent) => {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
       const completeAssetData = await getService("mux").getAssetById(data.asset_id);
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             asset_data: completeAssetData
@@ -679,7 +679,7 @@ const processWebhookEvent = async (webhookEvent) => {
       const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
       const completeAssetData = await getService("mux").getAssetById(data.asset_id);
       return [
-        muxAsset2.id,
+        muxAsset2,
         {
           data: {
             asset_data: completeAssetData
@@ -920,9 +920,9 @@ const muxWebhookHandler = async (ctx) => {
   if (outcome === void 0) {
     ctx.send("ignored");
   } else {
-    const [id, params] = outcome;
-    const result = await strapi.db.query(ASSET_MODEL).update({
-      where: { id },
+    const [asset, params] = outcome;
+    const result = await strapi.documents(ASSET_MODEL).update({
+      documentId: asset.documentId,
       data: params.data
     });
     ctx.send(result);

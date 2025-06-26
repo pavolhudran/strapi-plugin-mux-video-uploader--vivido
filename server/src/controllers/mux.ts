@@ -16,7 +16,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
     case 'video.upload.asset_created': {
       const muxAsset = await resolveMuxAsset({ upload_id: data.id });
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: { asset_id: data.asset_id },
         },
@@ -25,7 +25,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
     case 'video.asset.ready': {
       const muxAsset = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             playback_id: data.playback_ids[0].id,
@@ -41,7 +41,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
     case 'video.asset.updated': {
       const muxAsset = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             asset_data: data,
@@ -53,7 +53,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
     case 'video.asset.static_renditions.ready': {
       const muxAsset = await resolveMuxAsset({ asset_id: data.id });
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             asset_data: data,
@@ -67,7 +67,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
       // Fetch the complete asset data from Mux API to get updated static renditions
       const completeAssetData = await getService('mux').getAssetById(data.asset_id);
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             asset_data: completeAssetData,
@@ -81,7 +81,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
       // Fetch the complete asset data from Mux API to get updated static renditions
       const completeAssetData = await getService('mux').getAssetById(data.asset_id);
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             asset_data: completeAssetData,
@@ -95,7 +95,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
       // Fetch the complete asset data from Mux API to get updated static renditions
       const completeAssetData = await getService('mux').getAssetById(data.asset_id);
       return [
-        muxAsset.id,
+        muxAsset,
         {
           data: {
             asset_data: completeAssetData,
@@ -493,11 +493,11 @@ const muxWebhookHandler = async (ctx: Context) => {
   if (outcome === undefined) {
     ctx.send('ignored');
   } else {
-    const [id, params] = outcome;
+    const [asset, params] = outcome;
 
-    const result = await strapi.db.query(ASSET_MODEL).update({
-      where: { id },
-      data: params.data,
+    const result = await strapi.documents(ASSET_MODEL).update({
+      documentId: (asset as any).documentId,
+      data: params.data as any,
     });
 
     ctx.send(result);
