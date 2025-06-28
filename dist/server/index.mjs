@@ -204,8 +204,10 @@ const resolveMuxAsset = async (filters) => {
     filters
   });
   const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
-  if (!asset)
-    throw new Error("Unable to resolve mux-asset");
+  if (!asset) {
+    const filterDetails = Object.entries(filters).filter(([_, value]) => value !== void 0).map(([key, value]) => `${key}=${value}`).join(", ");
+    throw new Error(`Unable to resolve mux-asset with filters: ${filterDetails}`);
+  }
   return asset;
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
@@ -606,132 +608,187 @@ const processWebhookEvent = async (webhookEvent) => {
   const { type: type2, data } = webhookEvent;
   switch (type2) {
     case "video.upload.asset_created": {
-      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset2,
-        {
-          data: { asset_id: data.asset_id }
-        }
-      ];
+      try {
+        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset2,
+          {
+            data: { asset_id: data.asset_id }
+          }
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.asset_created webhook - no matching upload_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.ready": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2,
-        {
-          data: {
-            playback_id: data.playback_ids[0].id,
-            duration: data.duration,
-            aspect_ratio: data.aspect_ratio,
-            isReady: true,
-            asset_data: data
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2,
+          {
+            data: {
+              playback_id: data.playback_ids[0].id,
+              duration: data.duration,
+              aspect_ratio: data.aspect_ratio,
+              isReady: true,
+              asset_data: data
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.ready webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.updated": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2,
-        {
-          data: {
-            asset_data: data
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2,
+          {
+            data: {
+              asset_data: data
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.updated webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_renditions.ready": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2,
-        {
-          data: {
-            asset_data: data
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2,
+          {
+            data: {
+              asset_data: data
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_renditions.ready webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_rendition.ready": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-      const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-      return [
-        muxAsset2,
-        {
-          data: {
-            asset_data: completeAssetData
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_rendition.created": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-      const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-      return [
-        muxAsset2,
-        {
-          data: {
-            asset_data: completeAssetData
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_rendition.errored": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-      const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-      return [
-        muxAsset2,
-        {
-          data: {
-            asset_data: completeAssetData
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_rendition.skipped": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-      const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            asset_data: completeAssetData
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`);
+        return void 0;
+      }
     }
     case "video.asset.static_rendition.deleted": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-      const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            asset_data: completeAssetData
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`);
+        return void 0;
+      }
     }
     case "video.upload.errored": {
-      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            error_message: `There was an unexpected error during upload`
+      try {
+        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              error_message: `There was an unexpected error during upload`
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.errored webhook - no matching upload_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.errored": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.errored webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
     }
     default:
       return void 0;
@@ -916,16 +973,22 @@ const muxWebhookHandler = async (ctx) => {
   if (Array.isArray(sigHttpHeader)) {
     sigHttpHeader[0];
   }
-  const outcome = await processWebhookEvent(body);
-  if (outcome === void 0) {
-    ctx.send("ignored");
-  } else {
-    const [asset, params] = outcome;
-    const result = await strapi.documents(ASSET_MODEL).update({
-      documentId: asset.documentId,
-      data: params.data
-    });
-    ctx.send(result);
+  try {
+    const outcome = await processWebhookEvent(body);
+    if (outcome === void 0) {
+      ctx.send("ignored");
+    } else {
+      const [asset, params] = outcome;
+      const result = await strapi.documents(ASSET_MODEL).update({
+        documentId: asset.documentId,
+        data: params.data
+      });
+      ctx.send(result);
+    }
+  } catch (error) {
+    strapi.log.error("Webhook processing failed:", error);
+    ctx.status = 500;
+    ctx.send({ error: "Webhook processing failed" });
   }
 };
 const signMuxPlaybackId = async (ctx) => {

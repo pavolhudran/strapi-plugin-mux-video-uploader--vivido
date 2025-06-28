@@ -8,7 +8,13 @@ export const resolveMuxAsset = async (filters: MuxAssetFilter): Promise<MuxAsset
 
   const asset = muxAssets ? (Array.isArray(muxAssets) ? muxAssets[0] : muxAssets) : undefined;
 
-  if (!asset) throw new Error('Unable to resolve mux-asset');
+  if (!asset) {
+    const filterDetails = Object.entries(filters)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => `${key}=${value}`)
+      .join(', ');
+    throw new Error(`Unable to resolve mux-asset with filters: ${filterDetails}`);
+  }
 
   return asset as unknown as MuxAsset;
 };
