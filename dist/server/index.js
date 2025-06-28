@@ -690,7 +690,9 @@ const processWebhookEvent = async (webhookEvent) => {
           }
         ];
       } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`);
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`
+        );
         return void 0;
       }
     }
@@ -707,7 +709,9 @@ const processWebhookEvent = async (webhookEvent) => {
           }
         ];
       } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`);
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`
+        );
         return void 0;
       }
     }
@@ -724,7 +728,9 @@ const processWebhookEvent = async (webhookEvent) => {
           }
         ];
       } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`);
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`
+        );
         return void 0;
       }
     }
@@ -741,7 +747,9 @@ const processWebhookEvent = async (webhookEvent) => {
           }
         ];
       } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`);
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`
+        );
         return void 0;
       }
     }
@@ -758,7 +766,9 @@ const processWebhookEvent = async (webhookEvent) => {
           }
         ];
       } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`);
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`
+        );
         return void 0;
       }
     }
