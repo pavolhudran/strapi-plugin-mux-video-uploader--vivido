@@ -8,7 +8,7 @@ const React = require("react");
 const reactIntl = require("react-intl");
 const styled = require("styled-components");
 const icons = require("@strapi/icons");
-const index = require("./index-DSMYDPeq.js");
+const index = require("./index-BdhjZy74.js");
 const luxon = require("luxon");
 const upchunk = require("@mux/upchunk");
 const formik = require("formik");
@@ -1171,8 +1171,8 @@ const dependencies = {
   "@mux/mux-node": "^8.8.0",
   "@mux/mux-player-react": "^3.0.0",
   "@mux/upchunk": "^3.4.0",
-  "@strapi/design-system": "^2.0.0-rc.11",
-  "@strapi/icons": "^2.0.0-rc.11",
+  "@strapi/design-system": "^2.0.0-rc.12",
+  "@strapi/icons": "^2.0.0-rc.12",
   "@strapi/utils": "^4.20.5",
   axios: "^1.7.7",
   "copy-to-clipboard": "^3.3.3",
@@ -1184,8 +1184,8 @@ const dependencies = {
 };
 const devDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
-  "@strapi/typescript-utils": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
+  "@strapi/typescript-utils": "^5.4.0",
   "@types/luxon": "^3.4.2",
   "@types/react": "^18.3.9",
   "@types/react-dom": "^18.3.0",
@@ -1200,7 +1200,7 @@ const devDependencies = {
 };
 const peerDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
   react: "^18.3.1",
   "react-dom": "^18.3.1",
   "react-router-dom": "^6.26.2",
@@ -1792,4 +1792,4 @@ const App = () => {
   ] });
 };
 exports.default = App;
-//# sourceMappingURL=App-nc6OAa18.js.map
+//# sourceMappingURL=App-DyOEZAr2.js.map

@@ -6,7 +6,7 @@ import React from "react";
 import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { WarningCircle, Lock, Earth, Plus, Download, Trash, Pencil, Duplicate } from "@strapi/icons";
-import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-1XsGgggZ.mjs";
+import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-NqTnio1y.mjs";
 import { Duration } from "luxon";
 import { createUpload } from "@mux/upchunk";
 import { useFormik } from "formik";
@@ -1163,8 +1163,8 @@ const dependencies = {
   "@mux/mux-node": "^8.8.0",
   "@mux/mux-player-react": "^3.0.0",
   "@mux/upchunk": "^3.4.0",
-  "@strapi/design-system": "^2.0.0-rc.11",
-  "@strapi/icons": "^2.0.0-rc.11",
+  "@strapi/design-system": "^2.0.0-rc.12",
+  "@strapi/icons": "^2.0.0-rc.12",
   "@strapi/utils": "^4.20.5",
   axios: "^1.7.7",
   "copy-to-clipboard": "^3.3.3",
@@ -1176,8 +1176,8 @@ const dependencies = {
 };
 const devDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
-  "@strapi/typescript-utils": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
+  "@strapi/typescript-utils": "^5.4.0",
   "@types/luxon": "^3.4.2",
   "@types/react": "^18.3.9",
   "@types/react-dom": "^18.3.0",
@@ -1192,7 +1192,7 @@ const devDependencies = {
 };
 const peerDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
   react: "^18.3.1",
   "react-dom": "^18.3.1",
   "react-router-dom": "^6.26.2",
@@ -1786,4 +1786,4 @@ const App = () => {
 export {
   App as default
 };
-//# sourceMappingURL=App-HyANTp85.mjs.map
+//# sourceMappingURL=App-CLwdCPoH.mjs.map

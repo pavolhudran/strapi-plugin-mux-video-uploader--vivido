@@ -200,14 +200,12 @@ const pluginId$1 = PLUGIN_NAME;
 const ASSET_MODEL = `plugin::${pluginId$1}.mux-asset`;
 const TEXT_TRACK_MODEL = `plugin::${pluginId$1}.mux-text-track`;
 const resolveMuxAsset = async (filters) => {
-  const muxAssets = await strapi.documents(ASSET_MODEL).findMany({
+  const muxAssets = await strapi.db.query(ASSET_MODEL).findMany({
     filters
   });
   const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
-  if (!asset) {
-    const filterDetails = Object.entries(filters).filter(([_, value]) => value !== void 0).map(([key, value]) => `${key}=${value}`).join(", ");
-    throw new Error(`Unable to resolve mux-asset with filters: ${filterDetails}`);
-  }
+  if (!asset)
+    throw new Error("Unable to resolve mux-asset");
   return asset;
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
@@ -611,7 +609,7 @@ const processWebhookEvent = async (webhookEvent) => {
       try {
         const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: { asset_id: data.asset_id }
           }
@@ -625,7 +623,7 @@ const processWebhookEvent = async (webhookEvent) => {
       try {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               playback_id: data.playback_ids[0].id,
@@ -645,7 +643,7 @@ const processWebhookEvent = async (webhookEvent) => {
       try {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               asset_data: data
@@ -661,7 +659,7 @@ const processWebhookEvent = async (webhookEvent) => {
       try {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               asset_data: data
@@ -678,7 +676,7 @@ const processWebhookEvent = async (webhookEvent) => {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
         const completeAssetData = await getService("mux").getAssetById(data.asset_id);
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               asset_data: completeAssetData
@@ -697,7 +695,7 @@ const processWebhookEvent = async (webhookEvent) => {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
         const completeAssetData = await getService("mux").getAssetById(data.asset_id);
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               asset_data: completeAssetData
@@ -716,7 +714,7 @@ const processWebhookEvent = async (webhookEvent) => {
         const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
         const completeAssetData = await getService("mux").getAssetById(data.asset_id);
         return [
-          muxAsset2,
+          muxAsset2.id,
           {
             data: {
               asset_data: completeAssetData
@@ -988,9 +986,9 @@ const muxWebhookHandler = async (ctx) => {
     if (outcome === void 0) {
       ctx.send("ignored");
     } else {
-      const [asset, params] = outcome;
+      const [id, params] = outcome;
       const result = await strapi.documents(ASSET_MODEL).update({
-        documentId: asset.documentId,
+        documentId: id.toString(),
         data: params.data
       });
       ctx.send(result);
@@ -1052,159 +1050,179 @@ const policies = {};
 const routes$2 = [
   {
     method: "POST",
-    path: "/direct-upload",
+    path: "/mux-video-uploader/direct-upload",
     handler: "mux.postDirectUpload",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "POST",
-    path: "/remote-upload",
+    path: "/mux-video-uploader/remote-upload",
     handler: "mux.postRemoteUpload",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "DELETE",
-    path: "/mux-asset/:documentId",
+    path: "/mux-video-uploader/mux-asset/:documentId",
     handler: "mux.deleteMuxAsset",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "POST",
-    path: "/webhook-handler",
+    path: "/mux-video-uploader/webhook-handler",
     handler: "mux.muxWebhookHandler",
     config: {
-      auth: false
+      auth: false,
+      prefix: false
     }
   },
   {
     method: "GET",
-    path: "/thumbnail/:documentId",
+    path: "/mux-video-uploader/thumbnail/:documentId",
     handler: "mux.thumbnail",
     config: {
       auth: false,
+      prefix: false,
       description: "Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard"
     }
   },
   {
     method: "GET",
-    path: "/storyboard/:documentId",
+    path: "/mux-video-uploader/storyboard/:documentId",
     handler: "mux.storyboard",
     config: {
       auth: false,
+      prefix: false,
       description: "Proxies storyboard requests to load correctly within the Strapi Admin Dashboard"
     }
   },
   {
     method: "GET",
-    path: "/animated/:documentId",
+    path: "/mux-video-uploader/animated/:documentId",
     handler: "mux.animated",
     config: {
       auth: false,
+      prefix: false,
       description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard"
     }
   },
   {
     method: "GET",
-    path: "/sign/:documentId",
+    path: "/mux-video-uploader/sign/:documentId",
     handler: "mux.signMuxPlaybackId",
-    config: {}
+    config: {
+      prefix: false
+    }
   },
   {
     method: "GET",
-    path: "/mux-text-tracks/:documentId",
+    path: "/mux-video-uploader/mux-text-tracks/:documentId",
     handler: "mux.textTrack",
     config: {
       policies: [],
+      prefix: false,
       auth: false
     }
   },
   {
     method: "GET",
-    path: "/mux-asset",
+    path: "/mux-video-uploader/mux-asset",
     handler: "mux-asset.find",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "GET",
-    path: "/mux-asset/count",
+    path: "/mux-video-uploader/mux-asset/count",
     handler: "mux-asset.count",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "GET",
-    path: "/mux-asset/:documentId",
+    path: "/mux-video-uploader/mux-asset/:documentId",
     handler: "mux-asset.findOne",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "GET",
-    path: "/mux-asset/upload/:uploadId",
+    path: "/mux-video-uploader/mux-asset/upload/:uploadId",
     handler: "mux-asset.getByUploadId",
     config: {
       policies: [],
+      prefix: false,
       description: "Get mux assets by asset ID"
     }
   },
   {
     method: "GET",
-    path: "/mux-asset/asset/:assetId",
+    path: "/mux-video-uploader/mux-asset/asset/:assetId",
     handler: "mux-asset.getByAssetId",
     config: {
       policies: [],
+      prefix: false,
       description: "Get mux assets by asset ID"
     }
   },
   {
     method: "GET",
-    path: "/mux-asset/playback/:playbackId",
+    path: "/mux-video-uploader/mux-asset/playback/:playbackId",
     handler: "mux-asset.getByPlaybackId",
     config: {
       policies: [],
+      prefix: false,
       description: "Get mux asset by playback ID"
     }
   },
   {
     method: "POST",
-    path: "/mux-asset",
+    path: "/mux-video-uploader/mux-asset",
     handler: "mux-asset.create",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "PUT",
-    path: "/mux-asset/:documentId",
+    path: "/mux-video-uploader/mux-asset/:documentId",
     handler: "mux-asset.update",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "DELETE",
-    path: "/mux-asset/:documentId",
+    path: "/mux-video-uploader/mux-asset/:documentId",
     handler: "mux-asset.del",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
     method: "GET",
-    path: "/mux-settings",
+    path: "/mux-video-uploader/mux-settings",
     handler: "mux-settings.isConfigured",
     config: {
-      policies: []
+      policies: [],
+      prefix: false
     }
   }
 ];
@@ -1214,6 +1232,7 @@ const routes$1 = [
     path: "/direct-upload",
     handler: "mux.postDirectUpload",
     config: {
+      description: "Proxies direct upload requests to load correctly within the Strapi Admin Dashboard",
       policies: []
     }
   },
@@ -1222,6 +1241,7 @@ const routes$1 = [
     path: "/remote-upload",
     handler: "mux.postRemoteUpload",
     config: {
+      description: "Proxies remote upload requests to load correctly within the Strapi Admin Dashboard",
       policies: []
     }
   },
@@ -1230,15 +1250,8 @@ const routes$1 = [
     path: "/mux-asset/:documentId",
     handler: "mux.deleteMuxAsset",
     config: {
+      description: "Deletes a MuxAsset based on a supplied document id",
       policies: []
-    }
-  },
-  {
-    method: "POST",
-    path: "/webhook-handler",
-    handler: "mux.muxWebhookHandler",
-    config: {
-      auth: false
     }
   },
   {
@@ -1246,8 +1259,8 @@ const routes$1 = [
     path: "/thumbnail/:documentId",
     handler: "mux.thumbnail",
     config: {
-      auth: false,
-      description: "Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard"
+      description: "Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard",
+      policies: []
     }
   },
   {
@@ -1255,8 +1268,8 @@ const routes$1 = [
     path: "/storyboard/:documentId",
     handler: "mux.storyboard",
     config: {
-      auth: false,
-      description: "Proxies storyboard requests to load correctly within the Strapi Admin Dashboard"
+      description: "Proxies storyboard requests to load correctly within the Strapi Admin Dashboard",
+      policies: []
     }
   },
   {
@@ -1264,23 +1277,26 @@ const routes$1 = [
     path: "/animated/:documentId",
     handler: "mux.animated",
     config: {
-      auth: false,
-      description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard"
+      description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard",
+      policies: []
     }
   },
   {
     method: "GET",
     path: "/sign/:documentId",
     handler: "mux.signMuxPlaybackId",
-    config: {}
+    config: {
+      description: "Proxies sign playback ID requests to load correctly within the Strapi Admin Dashboard",
+      policies: []
+    }
   },
   {
     method: "GET",
     path: "/mux-text-tracks/:documentId",
     handler: "mux.textTrack",
     config: {
-      policies: [],
-      auth: false
+      description: "Proxies text track requests to load correctly within the Strapi Admin Dashboard",
+      policies: []
     }
   },
   {
@@ -1288,6 +1304,7 @@ const routes$1 = [
     path: "/mux-asset",
     handler: "mux-asset.find",
     config: {
+      description: "Returns all the MuxAsset items",
       policies: []
     }
   },
@@ -1296,6 +1313,7 @@ const routes$1 = [
     path: "/mux-asset/count",
     handler: "mux-asset.count",
     config: {
+      description: "Returns a count of MuxAsset items",
       policies: []
     }
   },
@@ -1304,6 +1322,7 @@ const routes$1 = [
     path: "/mux-asset/:documentId",
     handler: "mux-asset.findOne",
     config: {
+      description: "Returns a MuxAsset based on a supplied document id",
       policies: []
     }
   },
@@ -1312,8 +1331,8 @@ const routes$1 = [
     path: "/mux-asset/upload/:uploadId",
     handler: "mux-asset.getByUploadId",
     config: {
-      policies: [],
-      description: "Get mux assets by asset ID"
+      description: "Get mux assets by asset ID",
+      policies: []
     }
   },
   {
@@ -1321,8 +1340,8 @@ const routes$1 = [
     path: "/mux-asset/asset/:assetId",
     handler: "mux-asset.getByAssetId",
     config: {
-      policies: [],
-      description: "Get mux assets by asset ID"
+      description: "Get mux assets by asset ID",
+      policies: []
     }
   },
   {
@@ -1330,8 +1349,8 @@ const routes$1 = [
     path: "/mux-asset/playback/:playbackId",
     handler: "mux-asset.getByPlaybackId",
     config: {
-      policies: [],
-      description: "Get mux asset by playback ID"
+      description: "Get mux asset by playback ID",
+      policies: []
     }
   },
   {
@@ -1339,6 +1358,7 @@ const routes$1 = [
     path: "/mux-asset",
     handler: "mux-asset.create",
     config: {
+      description: "Creates a MuxAsset",
       policies: []
     }
   },
@@ -1347,6 +1367,7 @@ const routes$1 = [
     path: "/mux-asset/:documentId",
     handler: "mux-asset.update",
     config: {
+      description: "Updates a MuxAsset based on a supplied document id",
       policies: []
     }
   },
@@ -1355,6 +1376,7 @@ const routes$1 = [
     path: "/mux-asset/:documentId",
     handler: "mux-asset.del",
     config: {
+      description: "Deletes a MuxAsset based on a supplied document id",
       policies: []
     }
   },
@@ -1363,6 +1385,7 @@ const routes$1 = [
     path: "/mux-settings",
     handler: "mux-settings.isConfigured",
     config: {
+      description: "Checks if the Mux settings are configured",
       policies: []
     }
   }
@@ -1414,8 +1437,8 @@ const dependencies = {
   "@mux/mux-node": "^8.8.0",
   "@mux/mux-player-react": "^3.0.0",
   "@mux/upchunk": "^3.4.0",
-  "@strapi/design-system": "^2.0.0-rc.11",
-  "@strapi/icons": "^2.0.0-rc.11",
+  "@strapi/design-system": "^2.0.0-rc.12",
+  "@strapi/icons": "^2.0.0-rc.12",
   "@strapi/utils": "^4.20.5",
   axios: "^1.7.7",
   "copy-to-clipboard": "^3.3.3",
@@ -1427,8 +1450,8 @@ const dependencies = {
 };
 const devDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
-  "@strapi/typescript-utils": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
+  "@strapi/typescript-utils": "^5.4.0",
   "@types/luxon": "^3.4.2",
   "@types/react": "^18.3.9",
   "@types/react-dom": "^18.3.0",
@@ -1443,7 +1466,7 @@ const devDependencies = {
 };
 const peerDependencies = {
   "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.0.6",
+  "@strapi/strapi": "^5.4.0",
   react: "^18.3.1",
   "react-dom": "^18.3.1",
   "react-router-dom": "^6.26.2",
