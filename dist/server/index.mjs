@@ -203,12 +203,12 @@ const resolveMuxAsset = async (filters) => {
   const muxAssets = await strapi.db.query(ASSET_MODEL).findMany({
     filters
   });
-  const asset2 = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
-  if (!asset2)
+  const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
+  if (!asset)
     throw new Error("Unable to resolve mux-asset");
-  return asset2;
+  return asset;
 };
-const asset = async (model = ASSET_MODEL, id, action, opts = {}) => {
+const queryAsset = async (model = ASSET_MODEL, id, action, opts = {}) => {
   if (/^\d+$/.test(String(id))) {
     return strapi.db.query(model)[action]({ where: { id: +id }, ...opts });
   }
@@ -273,6 +273,15 @@ const UploadConfig = z.object({
    */
   mp4_support: z.enum(["none", "standard"]).default("none"),
   /**
+   * Static renditions configuration using the new API (replaces mp4_support)
+   * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
+   */
+  static_renditions: z.array(
+    z.object({
+      resolution: z.enum(["highest", "audio-only"])
+    })
+  ).optional(),
+  /**
    * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
    * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
    * @defaultValue '1080p'
@@ -303,7 +312,9 @@ const UploadConfig = z.object({
     return {
       ...v,
       max_resolution_tier: "1080p",
-      mp4_support: "none"
+      mp4_support: "none",
+      static_renditions: void 0
+      // Basic quality doesn't support static renditions
     };
   }
   return v;
@@ -505,7 +516,7 @@ const find = async (ctx) => {
 const findOne = async (ctx) => {
   try {
     const { documentId } = ctx.params;
-    return await asset(ASSET_MODEL, documentId, "findOne", { filters: ctx.query });
+    return await queryAsset(ASSET_MODEL, documentId, "findOne", { filters: ctx.query });
   } catch (error) {
     console.error("FindOne error:", error);
     throw error;
@@ -533,7 +544,7 @@ const create = async (ctx) => {
 const update = async (ctx) => {
   try {
     const { documentId } = ctx.params;
-    const muxAsset2 = await asset(ASSET_MODEL, documentId, "findOne");
+    const muxAsset2 = await queryAsset(ASSET_MODEL, documentId, "findOne");
     if (!muxAsset2) {
       ctx.notFound("mux-asset.notFound");
       return;
@@ -541,7 +552,7 @@ const update = async (ctx) => {
     const { title, custom_text_tracks } = ctx.request.body;
     await updateTextTracks(muxAsset2, custom_text_tracks);
     if (typeof title === "string" && title) {
-      await asset(ASSET_MODEL, documentId, "update", { data: { title } });
+      await queryAsset(ASSET_MODEL, documentId, "update", { data: { title } });
     }
     return { ok: true };
   } catch (error) {
@@ -552,7 +563,7 @@ const update = async (ctx) => {
 const del = async (ctx) => {
   try {
     const { documentId } = ctx.params;
-    return await asset(ASSET_MODEL, documentId, "delete");
+    return await queryAsset(ASSET_MODEL, documentId, "delete");
   } catch (error) {
     console.error("Delete error:", error);
     throw error;
@@ -660,50 +671,197 @@ const processWebhookEvent = async (webhookEvent) => {
   const { type: type2, data } = webhookEvent;
   switch (type2) {
     case "video.upload.asset_created": {
-      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: { asset_id: data.asset_id }
-        }
-      ];
+      try {
+        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: { asset_id: data.asset_id }
+          }
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.asset_created webhook - no matching upload_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.ready": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            playback_id: data.playback_ids[0].id,
-            duration: data.duration,
-            aspect_ratio: data.aspect_ratio,
-            isReady: true,
-            asset_data: data
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              playback_id: data.playback_ids[0].id,
+              duration: data.duration,
+              aspect_ratio: data.aspect_ratio,
+              isReady: true,
+              asset_data: data
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.ready webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
+    }
+    case "video.asset.updated": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: data
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.updated webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
+    }
+    case "video.asset.static_renditions.ready": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: data
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_renditions.ready webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
+    }
+    case "video.asset.static_rendition.ready": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return void 0;
+      }
+    }
+    case "video.asset.static_rendition.created": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return void 0;
+      }
+    }
+    case "video.asset.static_rendition.errored": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return void 0;
+      }
+    }
+    case "video.asset.static_rendition.skipped": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return void 0;
+      }
+    }
+    case "video.asset.static_rendition.deleted": {
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
+        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              asset_data: completeAssetData
+            }
+          }
+        ];
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return void 0;
+      }
     }
     case "video.upload.errored": {
-      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            error_message: `There was an unexpected error during upload`
+      try {
+        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              error_message: `There was an unexpected error during upload`
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.errored webhook - no matching upload_id: ${data.id}`);
+        return void 0;
+      }
     }
     case "video.asset.errored": {
-      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset2.id,
-        {
-          data: {
-            error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
+      try {
+        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset2.id,
+          {
+            data: {
+              error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
+            }
           }
-        }
-      ];
+        ];
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.errored webhook - no matching asset_id: ${data.id}`);
+        return void 0;
+      }
     }
     default:
       return void 0;
@@ -853,13 +1011,13 @@ const deleteMuxAsset = async (ctx) => {
     z.object({ documentId: z.string().or(z.number()) }),
     z.object({ delete_on_mux: z.string().or(z.boolean()).default(true) })
   );
-  const muxAsset2 = await asset(ASSET_MODEL, params.documentId, "findOne");
+  const muxAsset2 = await queryAsset(ASSET_MODEL, params.documentId, "findOne");
   if (!muxAsset2) {
     ctx.notFound("mux-asset.notFound");
     return;
   }
   const { asset_id, upload_id } = muxAsset2;
-  const deleteRes = await asset(ASSET_MODEL, params.documentId, "delete");
+  const deleteRes = await queryAsset(ASSET_MODEL, params.documentId, "delete");
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
@@ -893,10 +1051,7 @@ const muxWebhookHandler = async (ctx) => {
     ctx.send("ignored");
   } else {
     const [id, params] = outcome;
-    const result = await strapi.db.query(ASSET_MODEL).update({
-      where: { id },
-      data: params.data
-    });
+    const result = await queryAsset(ASSET_MODEL, id, "update", { data: params.data });
     ctx.send(result);
   }
 };
@@ -908,7 +1063,7 @@ const signMuxPlaybackId = async (ctx) => {
 };
 const textTrack = async (ctx) => {
   const { documentId } = ctx.params;
-  const track = await asset(TEXT_TRACK_MODEL, documentId, "findOne");
+  const track = await queryAsset(TEXT_TRACK_MODEL, documentId, "findOne");
   if (!track) {
     ctx.notFound("mux-text-track.notFound");
     return;
@@ -1443,15 +1598,21 @@ const muxService = () => ({
   }) {
     const { video } = await getMuxClient();
     const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
+    const newAssetSettings = {
+      input: uploadConfigToNewAssetInput(config2, storedTextTracks) || [],
+      playback_policy: [config2.signed ? "signed" : "public"],
+      encoding_tier: encodingTier,
+      max_resolution_tier: config2.max_resolution_tier
+    };
+    const staticRenditions = config2.static_renditions;
+    if (staticRenditions && Array.isArray(staticRenditions) && staticRenditions.length > 0) {
+      newAssetSettings.static_renditions = staticRenditions;
+    } else {
+      newAssetSettings.mp4_support = config2.mp4_support;
+    }
     return video.uploads.create({
       cors_origin: corsOrigin,
-      new_asset_settings: {
-        input: uploadConfigToNewAssetInput(config2, storedTextTracks),
-        playback_policy: [config2.signed ? "signed" : "public"],
-        mp4_support: config2.mp4_support,
-        encoding_tier: encodingTier,
-        max_resolution_tier: config2.max_resolution_tier
-      }
+      new_asset_settings: newAssetSettings
     });
   },
   async createRemoteAsset({
@@ -1461,13 +1622,19 @@ const muxService = () => ({
   }) {
     const { video } = await getMuxClient();
     const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
-    return video.assets.create({
+    const assetParams = {
       input: uploadConfigToNewAssetInput(config2, storedTextTracks, url) || [],
       playback_policy: [config2.signed ? "signed" : "public"],
-      mp4_support: config2.mp4_support,
       encoding_tier: encodingTier,
       max_resolution_tier: config2.max_resolution_tier
-    });
+    };
+    const staticRenditions = config2.static_renditions;
+    if (staticRenditions && Array.isArray(staticRenditions) && staticRenditions.length > 0) {
+      assetParams.static_renditions = staticRenditions;
+    } else {
+      assetParams.mp4_support = config2.mp4_support;
+    }
+    return video.assets.create(assetParams);
   },
   async deleteAsset(assetId) {
     const { video } = await getMuxClient();
