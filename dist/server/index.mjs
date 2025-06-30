@@ -1046,13 +1046,19 @@ const muxWebhookHandler = async (ctx) => {
   if (Array.isArray(sigHttpHeader)) {
     sigHttpHeader[0];
   }
-  const outcome = await processWebhookEvent(body);
-  if (outcome === void 0) {
-    ctx.send("ignored");
-  } else {
-    const [id, params] = outcome;
-    const result = await queryAsset(ASSET_MODEL, id, "update", { data: params.data });
-    ctx.send(result);
+  try {
+    const outcome = await processWebhookEvent(body);
+    if (outcome === void 0) {
+      ctx.send("ignored");
+    } else {
+      const [id, params] = outcome;
+      const result = await queryAsset(ASSET_MODEL, id, "update", { data: params.data });
+      ctx.send(result);
+    }
+  } catch (error) {
+    strapi.log.error("Webhook processing failed:", error);
+    ctx.status = 500;
+    ctx.send({ error: "Webhook processing failed" });
   }
 };
 const signMuxPlaybackId = async (ctx) => {
