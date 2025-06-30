@@ -226,6 +226,40 @@ const processWebhookEvent = async (webhookEvent: any) => {
         const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
         // Fetch the complete asset data from Mux API to get updated tracks
         const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+
+        // Create text track records for generated tracks (auto-captions)
+        if (completeAssetData.tracks) {
+          const newTextTracks = completeAssetData.tracks.filter(
+            (track: any) =>
+              track.type === 'text' &&
+              track.text_type === 'subtitles' &&
+              track.status === 'ready' &&
+              track.text_source === 'generated_vod'
+          );
+
+          if (newTextTracks.length > 0) {
+            try {
+              // Convert Mux tracks to ParsedCustomTextTrack format
+              const tracksToStore = newTextTracks.map((track: any) => ({
+                name: track.name,
+                language_code: track.language_code,
+                closed_captions: track.closed_captions || false,
+                file: {
+                  contents: '', // Empty for generated tracks - content is served from Mux
+                  type: 'text/vtt',
+                  name: `${track.name}.vtt`,
+                  size: 0,
+                },
+              }));
+
+              // Use existing storeTextTracks function
+              await storeTextTracks(tracksToStore);
+            } catch (trackError) {
+              console.log(`INFO: Failed to store text tracks:`, trackError);
+            }
+          }
+        }
+
         return [
           muxAsset.id,
           {
