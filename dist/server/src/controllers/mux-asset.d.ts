@@ -10,9 +10,6 @@ declare const _default: {
     update: (ctx: Context) => Promise<{
         ok: boolean;
     }>;
-    del: (ctx: Context) => Promise<{
-        documentId: string;
-        entries: import("@strapi/types/dist/modules/documents").AnyDocument[];
-    }>;
+    del: (ctx: Context) => Promise<any>;
 };
 export default _default;

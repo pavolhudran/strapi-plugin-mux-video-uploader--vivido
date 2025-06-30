@@ -31,10 +31,7 @@ declare const _default: {
             update: (ctx: import("koa").Context) => Promise<{
                 ok: boolean;
             }>;
-            del: (ctx: import("koa").Context) => Promise<{
-                documentId: string;
-                entries: import("@strapi/types/dist/modules/documents").AnyDocument[];
-            }>;
+            del: (ctx: import("koa").Context) => Promise<any>;
         };
         mux: {
             postDirectUpload: (ctx: import("koa").Context) => Promise<void>;

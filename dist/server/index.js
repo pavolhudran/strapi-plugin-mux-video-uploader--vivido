@@ -207,10 +207,20 @@ const resolveMuxAsset = async (filters) => {
   const muxAssets = await strapi.db.query(ASSET_MODEL).findMany({
     filters
   });
-  const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
-  if (!asset)
+  const asset2 = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
+  if (!asset2)
     throw new Error("Unable to resolve mux-asset");
-  return asset;
+  return asset2;
+};
+const asset = async (id, action, opts = {}) => {
+  if (/^\d+$/.test(String(id))) {
+    return strapi.db.query(ASSET_MODEL)[action]({ where: { id: +id }, ...opts });
+  }
+  try {
+    return await strapi.documents(ASSET_MODEL)[action](action === "delete" ? { documentId: String(id) } : { documentId: String(id), ...opts });
+  } catch {
+    return strapi.db.query(ASSET_MODEL)[action]({ where: { documentId: id }, ...opts });
+  }
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
 const getService = (name2) => {
@@ -483,9 +493,7 @@ const find = async (ctx) => {
 };
 const findOne = async (ctx) => {
   const { documentId } = ctx.params;
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { id: documentId }
-  });
+  return await asset(documentId, "findOne", { filters: ctx.query });
 };
 const count = (ctx) => {
   const params = ctx.query;
@@ -501,16 +509,13 @@ const update = async (ctx) => {
   const { title, custom_text_tracks } = ctx.request.body;
   await updateTextTracks(muxAsset2, custom_text_tracks);
   if (typeof title === "string" && title) {
-    await strapi.db.query(ASSET_MODEL).update({
-      where: { id: documentId },
-      data: { title }
-    });
+    await asset(documentId, "update", { data: { title } });
   }
   return { ok: true };
 };
 const del = async (ctx) => {
   const { documentId } = ctx.params;
-  return await strapi.documents(ASSET_MODEL).delete(documentId);
+  return await asset(documentId, "delete");
 };
 const muxAsset = {
   find,
@@ -696,17 +701,17 @@ const deleteMuxAsset = async (ctx) => {
     zod.z.object({ documentId: zod.z.string().or(zod.z.number()) }),
     zod.z.object({ delete_on_mux: zod.z.string().or(zod.z.boolean()).default(true) })
   );
-  const muxAsset2 = await strapi.db.query(ASSET_MODEL).findOne({ where: { id: params.documentId } });
+  const muxAsset2 = await asset(params.documentId, "findOne");
   if (!muxAsset2) {
     ctx.notFound("mux-asset.notFound");
     return;
   }
-  const deleteRes = await strapi.db.query(ASSET_MODEL).delete({ where: { id: params.documentId } });
+  const { asset_id, upload_id } = muxAsset2;
+  const deleteRes = await asset(params.documentId, "delete");
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
   }
-  const { asset_id, upload_id } = deleteRes;
   const result = { success: true, deletedOnMux: false };
   if (query.delete_on_mux) {
     try {
