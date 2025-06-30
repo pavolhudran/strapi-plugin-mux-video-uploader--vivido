@@ -1,6 +1,33 @@
 const routes = [
   {
     method: 'GET',
+    path: '/thumbnail/:documentId',
+    handler: 'mux.thumbnail',
+    config: {
+      description: 'Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'GET',
+    path: '/storyboard/:documentId',
+    handler: 'mux.storyboard',
+    config: {
+      description: 'Proxies storyboard requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'GET',
+    path: '/animated/:documentId',
+    handler: 'mux.animated',
+    config: {
+      description: 'Proxies animated requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'GET',
     path: '/mux-asset',
     handler: 'mux-asset.find',
     config: {

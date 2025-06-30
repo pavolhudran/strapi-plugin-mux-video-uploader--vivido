@@ -57,6 +57,16 @@ const routes = [
   },
   {
     method: 'GET',
+    path: '/mux-video-uploader/animated/:documentId',
+    handler: 'mux.animated',
+    config: {
+      auth: false,
+      prefix: false,
+      description: 'Proxies animated requests to load correctly within the Strapi Admin Dashboard',
+    },
+  },
+  {
+    method: 'GET',
     path: '/mux-video-uploader/sign/:documentId',
     handler: 'mux.signMuxPlaybackId',
     config: {
