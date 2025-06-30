@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 
 import { MuxAssetUpdate } from '../content-types/mux-asset/types';
-import { resolveMuxAsset, asset } from '../utils/resolve-mux-asset';
+import { asset } from '../utils/resolve-mux-asset';
 import { updateTextTracks } from '../utils/text-tracks';
 import { ASSET_MODEL } from '../utils/types';
 
@@ -48,7 +48,12 @@ const create = async (ctx: Context) => {
 
 const update = async (ctx: Context) => {
   const { documentId } = ctx.params;
-  const muxAsset = await resolveMuxAsset({ id: documentId });
+  const muxAsset = await asset(documentId, 'findOne');
+
+  if (!muxAsset) {
+    ctx.notFound('mux-asset.notFound');
+    return;
+  }
 
   const { title, custom_text_tracks } = <MuxAssetUpdate>ctx.request.body;
 
