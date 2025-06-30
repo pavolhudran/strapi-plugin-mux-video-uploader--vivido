@@ -39,5 +39,15 @@ export default {
       private: false,
       required: true,
     },
+    track_id: {
+      type: 'string',
+      private: false,
+      required: false,
+    },
+    asset_id: {
+      type: 'string',
+      private: false,
+      required: false,
+    },
   },
 };
