@@ -6,7 +6,16 @@ declare const _default: {
     }>;
     findOne: (ctx: Context) => Promise<any>;
     count: (ctx: Context) => import("@strapi/types/dist/modules/documents/result/document-engine").Count;
-    create: (ctx: Context) => Promise<import("@strapi/types/dist/modules/documents").AnyDocument>;
+    create: (ctx: Context) => Promise<{
+        debug: {
+            requestBody: any;
+            bodyType: "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function";
+            bodyKeys: string[];
+            title: any;
+            titleType: "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function";
+            titleLength: any;
+        };
+    }>;
     update: (ctx: Context) => Promise<{
         ok: boolean;
     }>;
