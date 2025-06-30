@@ -1,5 +1,32 @@
 const routes = [
   {
+    method: 'POST',
+    path: '/direct-upload',
+    handler: 'mux.postDirectUpload',
+    config: {
+      description: 'Proxies direct upload requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'POST',
+    path: '/remote-upload',
+    handler: 'mux.postRemoteUpload',
+    config: {
+      description: 'Proxies remote upload requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/mux-asset/:documentId',
+    handler: 'mux.deleteMuxAsset',
+    config: {
+      description: 'Deletes a MuxAsset based on a supplied document id',
+      policies: [],
+    },
+  },
+  {
     method: 'GET',
     path: '/thumbnail/:documentId',
     handler: 'mux.thumbnail',
@@ -23,6 +50,24 @@ const routes = [
     handler: 'mux.animated',
     config: {
       description: 'Proxies animated requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'GET',
+    path: '/sign/:documentId',
+    handler: 'mux.signMuxPlaybackId',
+    config: {
+      description: 'Proxies sign playback ID requests to load correctly within the Strapi Admin Dashboard',
+      policies: [],
+    },
+  },
+  {
+    method: 'GET',
+    path: '/mux-text-tracks/:documentId',
+    handler: 'mux.textTrack',
+    config: {
+      description: 'Proxies text track requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
     },
   },
@@ -77,6 +122,24 @@ const routes = [
     handler: 'mux-asset.getByPlaybackId',
     config: {
       description: 'Get mux asset by playback ID',
+      policies: [],
+    },
+  },
+  {
+    method: 'POST',
+    path: '/mux-asset',
+    handler: 'mux-asset.create',
+    config: {
+      description: 'Creates a MuxAsset',
+      policies: [],
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/mux-asset/:documentId',
+    handler: 'mux-asset.update',
+    config: {
+      description: 'Updates a MuxAsset based on a supplied document id',
       policies: [],
     },
   },
