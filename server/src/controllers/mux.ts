@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { StoredTextTrack, UploadConfig, UploadDataWithoutFile } from '../../../types/shared-types';
 import { Config, getService } from '../utils';
 import { parseRequest } from '../utils/parse-json-body';
-import { resolveMuxAsset, asset } from '../utils/resolve-mux-asset';
+import { resolveMuxAsset, queryAsset } from '../utils/resolve-mux-asset';
 import { storeTextTracks } from '../utils/text-tracks';
 import { ASSET_MODEL, TEXT_TRACK_MODEL } from '../utils/types';
 
@@ -13,51 +13,212 @@ const processWebhookEvent = async (webhookEvent: any) => {
   const { type, data } = webhookEvent;
 
   switch (type) {
+    // Handle video.upload.asset_created webhook
     case 'video.upload.asset_created': {
-      const muxAsset = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset.id,
-        {
-          data: { asset_id: data.asset_id },
-        },
-      ] as const;
-    }
-    case 'video.asset.ready': {
-      const muxAsset = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset.id,
-        {
-          data: {
-            playback_id: data.playback_ids[0].id,
-            duration: data.duration,
-            aspect_ratio: data.aspect_ratio,
-            isReady: true,
-            asset_data: data,
+      try {
+        const muxAsset = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: { asset_id: data.asset_id },
           },
-        },
-      ] as const;
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.asset_created webhook - no matching upload_id: ${data.id}`);
+        return undefined;
+      }
+    }
+    // Handle video.asset.ready webhook
+    case 'video.asset.ready': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: {
+              playback_id: data.playback_ids[0].id,
+              duration: data.duration,
+              aspect_ratio: data.aspect_ratio,
+              isReady: true,
+              asset_data: data,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.ready webhook - no matching asset_id: ${data.id}`);
+        return undefined;
+      }
+    }
+    // Handle asset updated webhook (e.g., when static renditions status changes)
+    case 'video.asset.updated': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: data,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.updated webhook - no matching asset_id: ${data.id}`);
+        return undefined;
+      }
+    }
+    // Handle legacy static_renditions.ready webhook (deprecated mp4_support)
+    case 'video.asset.static_renditions.ready': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: data,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.static_renditions.ready webhook - no matching asset_id: ${data.id}`);
+        return undefined;
+      }
+    }
+    // Handle new static_rendition.ready webhook (static_renditions API)
+    case 'video.asset.static_rendition.ready': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated static renditions
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return undefined;
+      }
+    }
+    // Handle static_rendition.created webhook
+    case 'video.asset.static_rendition.created': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated static renditions
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return undefined;
+      }
+    }
+    // Handle static_rendition.errored webhook
+    case 'video.asset.static_rendition.errored': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated static renditions
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return undefined;
+      }
+    }
+    // Handle static_rendition.skipped webhook
+    case 'video.asset.static_rendition.skipped': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated static renditions
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return undefined;
+      }
+    }
+    // Handle static_rendition.deleted webhook
+    case 'video.asset.static_rendition.deleted': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated static renditions
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(
+          `INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`
+        );
+        return undefined;
+      }
     }
     case 'video.upload.errored': {
-      const muxAsset = await resolveMuxAsset({ upload_id: data.id });
-      return [
-        muxAsset.id,
-        {
-          data: {
-            error_message: `There was an unexpected error during upload`,
+      try {
+        const muxAsset = await resolveMuxAsset({ upload_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: {
+              error_message: `There was an unexpected error during upload`,
+            },
           },
-        },
-      ] as const;
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.upload.errored webhook - no matching upload_id: ${data.id}`);
+        return undefined;
+      }
     }
     case 'video.asset.errored': {
-      const muxAsset = await resolveMuxAsset({ asset_id: data.id });
-      return [
-        muxAsset.id,
-        {
-          data: {
-            error_message: `${data.errors.type}: ${data.errors.messages[0] || ''}`,
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.id });
+        return [
+          muxAsset.id,
+          {
+            data: {
+              error_message: `${data.errors.type}: ${data.errors.messages[0] || ''}`,
+            },
           },
-        },
-      ] as const;
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.errored webhook - no matching asset_id: ${data.id}`);
+        return undefined;
+      }
     }
     default:
       return undefined;
@@ -314,7 +475,7 @@ const deleteMuxAsset = async (ctx: Context) => {
   );
 
   // Ensure that the mux-asset entry exists for the id
-  const muxAsset = await asset(ASSET_MODEL, params.documentId, 'findOne');
+  const muxAsset = await queryAsset(ASSET_MODEL, params.documentId, 'findOne');
 
   if (!muxAsset) {
     ctx.notFound('mux-asset.notFound');
@@ -325,7 +486,7 @@ const deleteMuxAsset = async (ctx: Context) => {
   const { asset_id, upload_id } = muxAsset;
 
   // Delete mux-asset entry
-  const deleteRes = await asset(ASSET_MODEL, params.documentId, 'delete');
+  const deleteRes = await queryAsset(ASSET_MODEL, params.documentId, 'delete');
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
@@ -396,10 +557,7 @@ const muxWebhookHandler = async (ctx: Context) => {
   } else {
     const [id, params] = outcome;
 
-    const result = await strapi.db.query(ASSET_MODEL).update({
-      where: { id },
-      data: params.data,
-    });
+    const result = await queryAsset(ASSET_MODEL, id, 'update', { data: params.data });
 
     ctx.send(result);
   }
@@ -422,7 +580,7 @@ const signMuxPlaybackId = async (ctx: Context) => {
 const textTrack = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  const track = (await asset(TEXT_TRACK_MODEL, documentId, 'findOne')) as StoredTextTrack | undefined;
+  const track = (await queryAsset(TEXT_TRACK_MODEL, documentId, 'findOne')) as StoredTextTrack | undefined;
 
   if (!track) {
     ctx.notFound('mux-text-track.notFound');

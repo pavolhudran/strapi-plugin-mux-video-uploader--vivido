@@ -71,15 +71,25 @@ const muxService = () => ({
     // which adds the updated `video_quality` parameter
     const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
 
+    const newAssetSettings: Mux.Video.Assets.AssetCreateParams = {
+      input: uploadConfigToNewAssetInput(config, storedTextTracks) || [],
+      playback_policy: [config.signed ? 'signed' : 'public'],
+      encoding_tier: encodingTier,
+      max_resolution_tier: config.max_resolution_tier,
+    };
+
+    // Handle static renditions vs mp4_support (no conflicts)
+    const staticRenditions = (config as any).static_renditions;
+    if (staticRenditions && Array.isArray(staticRenditions) && staticRenditions.length > 0) {
+      (newAssetSettings as any).static_renditions = staticRenditions;
+    } else {
+      // Always include mp4_support for API compatibility
+      newAssetSettings.mp4_support = config.mp4_support;
+    }
+
     return video.uploads.create({
       cors_origin: corsOrigin,
-      new_asset_settings: {
-        input: uploadConfigToNewAssetInput(config, storedTextTracks),
-        playback_policy: [config.signed ? 'signed' : 'public'],
-        mp4_support: config.mp4_support,
-        encoding_tier: encodingTier,
-        max_resolution_tier: config.max_resolution_tier,
-      },
+      new_asset_settings: newAssetSettings,
     });
   },
 
@@ -98,13 +108,23 @@ const muxService = () => ({
     // which adds the updated `video_quality` parameter
     const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
 
-    return video.assets.create({
+    const assetParams: Mux.Video.Assets.AssetCreateParams = {
       input: uploadConfigToNewAssetInput(config, storedTextTracks, url) || [],
       playback_policy: [config.signed ? 'signed' : 'public'],
-      mp4_support: config.mp4_support,
       encoding_tier: encodingTier,
       max_resolution_tier: config.max_resolution_tier,
-    });
+    };
+
+    // Handle static renditions vs mp4_support (no conflicts)
+    const staticRenditions = (config as any).static_renditions;
+    if (staticRenditions && Array.isArray(staticRenditions) && staticRenditions.length > 0) {
+      (assetParams as any).static_renditions = staticRenditions;
+    } else {
+      // Always include mp4_support for API compatibility
+      assetParams.mp4_support = config.mp4_support;
+    }
+
+    return video.assets.create(assetParams);
   },
 
   async deleteAsset(assetId: string) {

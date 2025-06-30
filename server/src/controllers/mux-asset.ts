@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 
 import { MuxAssetUpdate } from '../content-types/mux-asset/types';
-import { asset } from '../utils/resolve-mux-asset';
+import { queryAsset } from '../utils/resolve-mux-asset';
 import { updateTextTracks } from '../utils/text-tracks';
 import { ASSET_MODEL } from '../utils/types';
 
@@ -42,7 +42,7 @@ const findOne = async (ctx: Context) => {
   try {
     const { documentId } = ctx.params;
 
-    return await asset(ASSET_MODEL, documentId, 'findOne', { filters: ctx.query });
+    return await queryAsset(ASSET_MODEL, documentId, 'findOne', { filters: ctx.query });
   } catch (error) {
     console.error('FindOne error:', error);
     throw error;
@@ -75,7 +75,7 @@ const create = async (ctx: Context) => {
 const update = async (ctx: Context) => {
   try {
     const { documentId } = ctx.params;
-    const muxAsset = await asset(ASSET_MODEL, documentId, 'findOne');
+    const muxAsset = await queryAsset(ASSET_MODEL, documentId, 'findOne');
 
     if (!muxAsset) {
       ctx.notFound('mux-asset.notFound');
@@ -88,7 +88,7 @@ const update = async (ctx: Context) => {
     await updateTextTracks(muxAsset, custom_text_tracks);
 
     if (typeof title === 'string' && title) {
-      await asset(ASSET_MODEL, documentId, 'update', { data: { title } });
+      await queryAsset(ASSET_MODEL, documentId, 'update', { data: { title } });
     }
 
     return { ok: true };
@@ -102,7 +102,7 @@ const del = async (ctx: Context) => {
   try {
     const { documentId } = ctx.params;
 
-    return await asset(ASSET_MODEL, documentId, 'delete');
+    return await queryAsset(ASSET_MODEL, documentId, 'delete');
   } catch (error) {
     console.error('Delete error:', error);
     throw error;

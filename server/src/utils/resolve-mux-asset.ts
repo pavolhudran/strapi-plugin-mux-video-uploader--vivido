@@ -1,5 +1,5 @@
 import { MuxAsset } from '../content-types/mux-asset/types';
-import { ASSET_MODEL, TEXT_TRACK_MODEL } from './types';
+import { ASSET_MODEL } from './types';
 
 export const resolveMuxAsset = async (filters: MuxAssetFilter): Promise<MuxAsset> => {
   // const muxAssets = await strapi.documents(ASSET_MODEL).findMany({
@@ -32,7 +32,7 @@ export interface MuxAssetFilter {
  * @param opts - Additional options for the operation
  * @returns The result of the operation
  */
-export const asset = async (
+export const queryAsset = async (
   model: any = ASSET_MODEL,
   id: string | number,
   action: 'findOne' | 'delete' | 'update',
