@@ -212,14 +212,14 @@ const resolveMuxAsset = async (filters) => {
     throw new Error("Unable to resolve mux-asset");
   return asset2;
 };
-const asset = async (id, action, opts = {}) => {
+const asset = async (model = ASSET_MODEL, id, action, opts = {}) => {
   if (/^\d+$/.test(String(id))) {
-    return strapi.db.query(ASSET_MODEL)[action]({ where: { id: +id }, ...opts });
+    return strapi.db.query(model)[action]({ where: { id: +id }, ...opts });
   }
   try {
-    return await strapi.documents(ASSET_MODEL)[action](action === "delete" ? { documentId: String(id) } : { documentId: String(id), ...opts });
+    return await strapi.documents(model)[action](action === "delete" ? { documentId: String(id) } : { documentId: String(id), ...opts });
   } catch {
-    return strapi.db.query(ASSET_MODEL)[action]({ where: { documentId: id }, ...opts });
+    return strapi.db.query(model)[action]({ where: { documentId: id }, ...opts });
   }
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
@@ -493,19 +493,19 @@ const find = async (ctx) => {
 };
 const findOne = async (ctx) => {
   const { documentId } = ctx.params;
-  return await asset(documentId, "findOne", { filters: ctx.query });
+  return await asset(ASSET_MODEL, documentId, "findOne", { filters: ctx.query });
 };
 const count = (ctx) => {
   const params = ctx.query;
   return strapi.documents(ASSET_MODEL).count(params);
 };
 const create = async (ctx) => {
-  const { body } = ctx.request.body;
+  const body = ctx.request.body;
   return await strapi.documents(ASSET_MODEL).create({ data: body });
 };
 const update = async (ctx) => {
   const { documentId } = ctx.params;
-  const muxAsset2 = await asset(documentId, "findOne");
+  const muxAsset2 = await asset(ASSET_MODEL, documentId, "findOne");
   if (!muxAsset2) {
     ctx.notFound("mux-asset.notFound");
     return;
@@ -513,13 +513,13 @@ const update = async (ctx) => {
   const { title, custom_text_tracks } = ctx.request.body;
   await updateTextTracks(muxAsset2, custom_text_tracks);
   if (typeof title === "string" && title) {
-    await asset(documentId, "update", { data: { title } });
+    await asset(ASSET_MODEL, documentId, "update", { data: { title } });
   }
   return { ok: true };
 };
 const del = async (ctx) => {
   const { documentId } = ctx.params;
-  return await asset(documentId, "delete");
+  return await asset(ASSET_MODEL, documentId, "delete");
 };
 const getByUploadId = async (ctx) => {
   const { uploadId } = ctx.params;
@@ -801,13 +801,13 @@ const deleteMuxAsset = async (ctx) => {
     zod.z.object({ documentId: zod.z.string().or(zod.z.number()) }),
     zod.z.object({ delete_on_mux: zod.z.string().or(zod.z.boolean()).default(true) })
   );
-  const muxAsset2 = await asset(params.documentId, "findOne");
+  const muxAsset2 = await asset(ASSET_MODEL, params.documentId, "findOne");
   if (!muxAsset2) {
     ctx.notFound("mux-asset.notFound");
     return;
   }
   const { asset_id, upload_id } = muxAsset2;
-  const deleteRes = await asset(params.documentId, "delete");
+  const deleteRes = await asset(ASSET_MODEL, params.documentId, "delete");
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
@@ -856,7 +856,7 @@ const signMuxPlaybackId = async (ctx) => {
 };
 const textTrack = async (ctx) => {
   const { documentId } = ctx.params;
-  const track = await strapi.db.query(TEXT_TRACK_MODEL).findOne(documentId);
+  const track = await asset(TEXT_TRACK_MODEL, documentId, "findOne");
   if (!track) {
     ctx.notFound("mux-text-track.notFound");
     return;
