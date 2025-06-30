@@ -6,6 +6,7 @@ const routes = [
     config: {
       description: 'Proxies direct upload requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -15,6 +16,7 @@ const routes = [
     config: {
       description: 'Proxies remote upload requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -24,6 +26,7 @@ const routes = [
     config: {
       description: 'Deletes a MuxAsset based on a supplied document id',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -33,6 +36,7 @@ const routes = [
     config: {
       description: 'Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -42,6 +46,7 @@ const routes = [
     config: {
       description: 'Proxies storyboard requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -51,6 +56,7 @@ const routes = [
     config: {
       description: 'Proxies animated requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -60,6 +66,7 @@ const routes = [
     config: {
       description: 'Proxies sign playback ID requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -69,6 +76,7 @@ const routes = [
     config: {
       description: 'Proxies text track requests to load correctly within the Strapi Admin Dashboard',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -78,6 +86,7 @@ const routes = [
     config: {
       description: 'Returns all the MuxAsset items',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -87,6 +96,7 @@ const routes = [
     config: {
       description: 'Returns a count of MuxAsset items',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -96,6 +106,7 @@ const routes = [
     config: {
       description: 'Returns a MuxAsset based on a supplied document id',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -105,6 +116,7 @@ const routes = [
     config: {
       description: 'Get mux assets by asset ID',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -114,6 +126,7 @@ const routes = [
     config: {
       description: 'Get mux assets by asset ID',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -123,6 +136,7 @@ const routes = [
     config: {
       description: 'Get mux asset by playback ID',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -132,6 +146,7 @@ const routes = [
     config: {
       description: 'Creates a MuxAsset',
       policies: [],
+      prefix: false,
     },
   },
   {
@@ -150,6 +165,7 @@ const routes = [
     config: {
       description: 'Checks if the Mux settings are configured',
       policies: [],
+      prefix: false,
     },
   },
 ];
