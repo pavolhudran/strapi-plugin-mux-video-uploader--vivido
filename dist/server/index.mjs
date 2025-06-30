@@ -1134,7 +1134,8 @@ const routes$1 = [
     handler: "mux.postDirectUpload",
     config: {
       description: "Proxies direct upload requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1143,7 +1144,8 @@ const routes$1 = [
     handler: "mux.postRemoteUpload",
     config: {
       description: "Proxies remote upload requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1152,7 +1154,8 @@ const routes$1 = [
     handler: "mux.deleteMuxAsset",
     config: {
       description: "Deletes a MuxAsset based on a supplied document id",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1161,7 +1164,8 @@ const routes$1 = [
     handler: "mux.thumbnail",
     config: {
       description: "Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1170,7 +1174,8 @@ const routes$1 = [
     handler: "mux.storyboard",
     config: {
       description: "Proxies storyboard requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1179,7 +1184,8 @@ const routes$1 = [
     handler: "mux.animated",
     config: {
       description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1188,7 +1194,8 @@ const routes$1 = [
     handler: "mux.signMuxPlaybackId",
     config: {
       description: "Proxies sign playback ID requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1197,7 +1204,8 @@ const routes$1 = [
     handler: "mux.textTrack",
     config: {
       description: "Proxies text track requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1206,7 +1214,8 @@ const routes$1 = [
     handler: "mux-asset.find",
     config: {
       description: "Returns all the MuxAsset items",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1215,7 +1224,8 @@ const routes$1 = [
     handler: "mux-asset.count",
     config: {
       description: "Returns a count of MuxAsset items",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1224,7 +1234,8 @@ const routes$1 = [
     handler: "mux-asset.findOne",
     config: {
       description: "Returns a MuxAsset based on a supplied document id",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1233,7 +1244,8 @@ const routes$1 = [
     handler: "mux-asset.getByUploadId",
     config: {
       description: "Get mux assets by asset ID",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1242,7 +1254,8 @@ const routes$1 = [
     handler: "mux-asset.getByAssetId",
     config: {
       description: "Get mux assets by asset ID",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1251,7 +1264,8 @@ const routes$1 = [
     handler: "mux-asset.getByPlaybackId",
     config: {
       description: "Get mux asset by playback ID",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1260,7 +1274,8 @@ const routes$1 = [
     handler: "mux-asset.create",
     config: {
       description: "Creates a MuxAsset",
-      policies: []
+      policies: [],
+      prefix: false
     }
   },
   {
@@ -1278,7 +1293,8 @@ const routes$1 = [
     handler: "mux-settings.isConfigured",
     config: {
       description: "Checks if the Mux settings are configured",
-      policies: []
+      policies: [],
+      prefix: false
     }
   }
 ];
