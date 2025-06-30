@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { StoredTextTrack, UploadConfig, UploadDataWithoutFile } from '../../../types/shared-types';
 import { Config, getService } from '../utils';
 import { parseRequest } from '../utils/parse-json-body';
-import { resolveMuxAsset } from '../utils/resolve-mux-asset';
+import { resolveMuxAsset, asset } from '../utils/resolve-mux-asset';
 import { storeTextTracks } from '../utils/text-tracks';
 import { ASSET_MODEL, TEXT_TRACK_MODEL } from '../utils/types';
 
@@ -13,6 +13,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
   const { type, data } = webhookEvent;
 
   switch (type) {
+    // Handle video.upload.asset_created webhook
     case 'video.upload.asset_created': {
       try {
         const muxAsset = await resolveMuxAsset({ upload_id: data.id });
@@ -27,6 +28,7 @@ const processWebhookEvent = async (webhookEvent: any) => {
         return undefined;
       }
     }
+    // Handle video.asset.ready webhook
     case 'video.asset.ready': {
       try {
         const muxAsset = await resolveMuxAsset({ asset_id: data.id });
@@ -473,27 +475,22 @@ const deleteMuxAsset = async (ctx: Context) => {
   );
 
   // Ensure that the mux-asset entry exists for the id
-  // @ts-ignore - v5 migration
-  // const muxAsset = await strapi.documents(ASSET_MODEL).findOne(documentId);
-  const muxAsset = await strapi.db.query(ASSET_MODEL).findOne({ where: { id: params.documentId } });
+  const muxAsset = await asset(params.documentId, 'findOne');
 
   if (!muxAsset) {
     ctx.notFound('mux-asset.notFound');
-
     return;
   }
 
+  // Get asset_id and upload_id before deletion
+  const { asset_id, upload_id } = muxAsset;
+
   // Delete mux-asset entry
-  // @ts-ignore - v5 migration
-  // const deleteRes = await strapi.documents(ASSET_MODEL).delete(params.documentId);
-  const deleteRes = await strapi.db.query(ASSET_MODEL).delete({ where: { id: params.documentId } });
+  const deleteRes = await asset(params.documentId, 'delete');
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
   }
-
-  // @ts-ignore - v5 migration
-  const { asset_id, upload_id } = deleteRes;
   const result = { success: true, deletedOnMux: false };
 
   // If the directive exists deleting the Asset from Mux

@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 
 import { MuxAssetUpdate } from '../content-types/mux-asset/types';
-import { resolveMuxAsset } from '../utils/resolve-mux-asset';
+import { resolveMuxAsset, asset } from '../utils/resolve-mux-asset';
 import { updateTextTracks } from '../utils/text-tracks';
 import { ASSET_MODEL } from '../utils/types';
 
@@ -31,14 +31,7 @@ const find = async (ctx: Context) => {
 const findOne = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { id: documentId },
-  });
-  // @ts-ignore - v5 migration
-  // return await strapi.documents(ASSET_MODEL).findOne({
-  //   documentId,
-  //   filters: ctx.query,
-  // });
+  return await asset(documentId, 'findOne', { filters: ctx.query });
 };
 
 const count = (ctx: Context) => {
@@ -63,16 +56,7 @@ const update = async (ctx: Context) => {
   await updateTextTracks(muxAsset, custom_text_tracks);
 
   if (typeof title === 'string' && title) {
-    await strapi.db.query(ASSET_MODEL).update({
-      where: { id: documentId },
-      data: { title },
-    });
-    // @ts-ignore - v5 migration
-    // await strapi.documents(ASSET_MODEL).update({
-    //   documentId,
-    //   // @ts-expect-error - v5 migration
-    //   data: { title },
-    // });
+    await asset(documentId, 'update', { data: { title } });
   }
 
   return { ok: true };
@@ -81,7 +65,7 @@ const update = async (ctx: Context) => {
 const del = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  return await strapi.documents(ASSET_MODEL).delete(documentId);
+  return await asset(documentId, 'delete');
 };
 
 /**

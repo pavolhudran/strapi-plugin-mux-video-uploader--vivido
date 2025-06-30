@@ -144,15 +144,7 @@ const routes = [
       policies: [],
     },
   },
-  {
-    method: 'DELETE',
-    path: '/mux-asset/:documentId',
-    handler: 'mux-asset.del',
-    config: {
-      description: 'Deletes a MuxAsset based on a supplied document id',
-      policies: [],
-    },
-  },
+
   {
     method: 'GET',
     path: '/mux-settings',
