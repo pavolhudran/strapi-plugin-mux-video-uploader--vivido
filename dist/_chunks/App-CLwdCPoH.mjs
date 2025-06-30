@@ -6,7 +6,7 @@ import React from "react";
 import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { WarningCircle, Lock, Earth, Plus, Download, Trash, Pencil, Duplicate } from "@strapi/icons";
-import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-DAbK-g3C.mjs";
+import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-NqTnio1y.mjs";
 import { Duration } from "luxon";
 import { createUpload } from "@mux/upchunk";
 import { useFormik } from "formik";
@@ -368,6 +368,15 @@ const UploadConfig = z.object({
    */
   mp4_support: z.enum(["none", "standard"]).default("none"),
   /**
+   * Static renditions configuration using the new API (replaces mp4_support)
+   * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
+   */
+  static_renditions: z.array(
+    z.object({
+      resolution: z.enum(["highest", "audio-only"])
+    })
+  ).optional(),
+  /**
    * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
    * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
    * @defaultValue '1080p'
@@ -398,7 +407,9 @@ const UploadConfig = z.object({
     return {
       ...v,
       max_resolution_tier: "1080p",
-      mp4_support: "none"
+      mp4_support: "none",
+      static_renditions: void 0
+      // Basic quality doesn't support static renditions
     };
   }
   return v;
@@ -1775,4 +1786,4 @@ const App = () => {
 export {
   App as default
 };
-//# sourceMappingURL=App-fSE2QtOn.mjs.map
+//# sourceMappingURL=App-CLwdCPoH.mjs.map

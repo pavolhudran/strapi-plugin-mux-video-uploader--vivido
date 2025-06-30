@@ -8,7 +8,7 @@ const React = require("react");
 const reactIntl = require("react-intl");
 const styled = require("styled-components");
 const icons = require("@strapi/icons");
-const index = require("./index-qcWYYy56.js");
+const index = require("./index-BdhjZy74.js");
 const luxon = require("luxon");
 const upchunk = require("@mux/upchunk");
 const formik = require("formik");
@@ -376,6 +376,15 @@ const UploadConfig = zod.z.object({
    */
   mp4_support: zod.z.enum(["none", "standard"]).default("none"),
   /**
+   * Static renditions configuration using the new API (replaces mp4_support)
+   * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
+   */
+  static_renditions: zod.z.array(
+    zod.z.object({
+      resolution: zod.z.enum(["highest", "audio-only"])
+    })
+  ).optional(),
+  /**
    * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
    * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
    * @defaultValue '1080p'
@@ -406,7 +415,9 @@ const UploadConfig = zod.z.object({
     return {
       ...v,
       max_resolution_tier: "1080p",
-      mp4_support: "none"
+      mp4_support: "none",
+      static_renditions: void 0
+      // Basic quality doesn't support static renditions
     };
   }
   return v;
@@ -1781,4 +1792,4 @@ const App = () => {
   ] });
 };
 exports.default = App;
-//# sourceMappingURL=App-CHhuTbsN.js.map
+//# sourceMappingURL=App-DyOEZAr2.js.map

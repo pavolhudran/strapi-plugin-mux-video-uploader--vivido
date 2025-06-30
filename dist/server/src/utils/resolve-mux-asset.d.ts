@@ -14,4 +14,4 @@ export interface MuxAssetFilter {
  * @param opts - Additional options for the operation
  * @returns The result of the operation
  */
-export declare const asset: (model: any, id: string | number, action: 'findOne' | 'delete' | 'update', opts?: {}) => Promise<any>;
+export declare const queryAsset: (model: any, id: string | number, action: 'findOne' | 'delete' | 'update', opts?: {}) => Promise<any>;
