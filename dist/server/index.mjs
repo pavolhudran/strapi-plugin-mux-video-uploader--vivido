@@ -497,16 +497,13 @@ const count = (ctx) => {
 };
 const create = async (ctx) => {
   const body = ctx.request.body;
-  return {
-    debug: {
-      requestBody: body,
-      bodyType: typeof body,
-      bodyKeys: body ? Object.keys(body) : null,
-      title: body?.title,
-      titleType: typeof body?.title,
-      titleLength: body?.title?.length
-    }
-  };
+  try {
+    const result = await strapi.documents(ASSET_MODEL).create({ data: body });
+    return result;
+  } catch (error) {
+    console.error("Create error:", error);
+    throw error;
+  }
 };
 const update = async (ctx) => {
   const { documentId } = ctx.params;
