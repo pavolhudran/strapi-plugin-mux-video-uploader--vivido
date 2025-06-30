@@ -45,10 +45,13 @@ export const asset = async (
   }
   // Non-numeric ID - try v5 API first, then database fallback
   try {
-    return await strapi
-      .documents(model)
-      [action as string](action === 'delete' ? { documentId: String(id) } : { documentId: String(id), ...opts });
+    const docs = strapi.documents(model);
+    return await {
+      findOne: () => docs.findOne({ documentId: String(id), ...opts }),
+      delete: () => docs.delete({ documentId: String(id) }),
+      update: () => docs.update({ documentId: String(id), ...opts }),
+    }[action]();
   } catch {
-    return strapi.db.query(model)[action]({ where: { documentId: id }, ...opts });
+    return strapi.db.query(model)[action]({ where: { document_id: id }, ...opts });
   }
 };
