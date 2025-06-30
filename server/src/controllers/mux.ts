@@ -278,26 +278,17 @@ const processWebhookEvent = async (webhookEvent: any) => {
                     };
                   } catch (fetchError) {
                     console.log(`INFO: Failed to fetch content for track ${track.id}:`, fetchError);
-                    // Return track without content as fallback
-                    return {
-                      name: track.name,
-                      language_code: track.language_code,
-                      closed_captions: track.closed_captions || false,
-                      track_id: track.id,
-                      asset_id: data.asset_id,
-                      file: {
-                        contents: '',
-                        type: 'text/vtt',
-                        name: `${track.name}.vtt`,
-                        size: 0,
-                      },
-                    };
+                    // Return null to skip this track
+                    return null;
                   }
                 })
               );
 
-              // Use existing storeTextTracks function
-              await storeTextTracks(tracksToStore);
+              // Filter out failed tracks and use existing storeTextTracks function
+              const validTracks = tracksToStore.filter((track) => track !== null);
+              if (validTracks.length > 0) {
+                await storeTextTracks(validTracks);
+              }
             } catch (trackError) {
               console.log(`INFO: Failed to store text tracks:`, trackError);
             }
