@@ -550,16 +550,22 @@ const muxWebhookHandler = async (ctx: Context) => {
   //   return;
   // }
 
-  const outcome = await processWebhookEvent(body);
+  try {
+    const outcome = await processWebhookEvent(body);
 
-  if (outcome === undefined) {
-    ctx.send('ignored');
-  } else {
-    const [id, params] = outcome;
+    if (outcome === undefined) {
+      ctx.send('ignored');
+    } else {
+      const [id, params] = outcome;
 
-    const result = await queryAsset(ASSET_MODEL, id, 'update', { data: params.data });
+      const result = await queryAsset(ASSET_MODEL, id, 'update', { data: params.data });
 
-    ctx.send(result);
+      ctx.send(result);
+    }
+  } catch (error) {
+    strapi.log.error('Webhook processing failed:', error);
+    ctx.status = 500;
+    ctx.send({ error: 'Webhook processing failed' });
   }
 };
 
