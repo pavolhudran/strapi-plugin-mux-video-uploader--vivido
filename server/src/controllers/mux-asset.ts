@@ -41,9 +41,22 @@ const count = (ctx: Context) => {
 };
 
 const create = async (ctx: Context) => {
-  const { body } = ctx.request.body;
+  const body = ctx.request.body;
 
-  return await strapi.documents(ASSET_MODEL).create({ data: body });
+  // Return request data for debugging
+  return {
+    debug: {
+      requestBody: body,
+      bodyType: typeof body,
+      bodyKeys: body ? Object.keys(body) : null,
+      title: body?.title,
+      titleType: typeof body?.title,
+      titleLength: body?.title?.length,
+    },
+  };
+
+  // Commented out for debugging - uncomment when fixed:
+  // return await strapi.documents(ASSET_MODEL).create({ data: body });
 };
 
 const update = async (ctx: Context) => {
