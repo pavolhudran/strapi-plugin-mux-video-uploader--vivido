@@ -501,7 +501,11 @@ const create = async (ctx) => {
 };
 const update = async (ctx) => {
   const { documentId } = ctx.params;
-  const muxAsset2 = await resolveMuxAsset({ id: documentId });
+  const muxAsset2 = await asset(documentId, "findOne");
+  if (!muxAsset2) {
+    ctx.notFound("mux-asset.notFound");
+    return;
+  }
   const { title, custom_text_tracks } = ctx.request.body;
   await updateTextTracks(muxAsset2, custom_text_tracks);
   if (typeof title === "string" && title) {
