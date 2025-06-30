@@ -43,20 +43,13 @@ const count = (ctx: Context) => {
 const create = async (ctx: Context) => {
   const body = ctx.request.body;
 
-  // Return request data for debugging
-  return {
-    debug: {
-      requestBody: body,
-      bodyType: typeof body,
-      bodyKeys: body ? Object.keys(body) : null,
-      title: body?.title,
-      titleType: typeof body?.title,
-      titleLength: body?.title?.length,
-    },
-  };
-
-  // Commented out for debugging - uncomment when fixed:
-  // return await strapi.documents(ASSET_MODEL).create({ data: body });
+  try {
+    const result = await strapi.documents(ASSET_MODEL).create({ data: body });
+    return result;
+  } catch (error) {
+    console.error('Create error:', error);
+    throw error;
+  }
 };
 
 const update = async (ctx: Context) => {
