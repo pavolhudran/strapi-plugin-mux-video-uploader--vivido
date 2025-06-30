@@ -500,10 +500,7 @@ const count = (ctx) => {
   return strapi.documents(ASSET_MODEL).count(params);
 };
 const create = async (ctx) => {
-  const body = ctx.request.body;
-  console.log("Create request body:", JSON.stringify(body));
-  console.log("Title value:", body?.title);
-  console.log("Title length:", body?.title?.length);
+  const { body } = ctx.request.body;
   return await strapi.documents(ASSET_MODEL).create({ data: body });
 };
 const update = async (ctx) => {
