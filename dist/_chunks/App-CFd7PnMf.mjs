@@ -6,7 +6,7 @@ import React from "react";
 import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { WarningCircle, Lock, Earth, Plus, Download, Trash, Pencil, Duplicate } from "@strapi/icons";
-import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-NqTnio1y.mjs";
+import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-Bu-BWrEC.mjs";
 import { Duration } from "luxon";
 import { createUpload } from "@mux/upchunk";
 import { useFormik } from "formik";
@@ -1127,7 +1127,7 @@ const Header = (props) => {
   ] });
 };
 const name = "strapi-plugin-mux-video-uploader";
-const version = "3.2.2";
+const version = "3.2.3";
 const description = "This plugin allows you to upload your content to Mux and use it with Strapi.";
 const license = "MIT";
 const type = "commonjs";
@@ -1786,4 +1786,4 @@ const App = () => {
 export {
   App as default
 };
-//# sourceMappingURL=App-CLwdCPoH.mjs.map
+//# sourceMappingURL=App-CFd7PnMf.mjs.map
