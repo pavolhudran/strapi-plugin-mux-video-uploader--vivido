@@ -217,9 +217,14 @@ const asset = async (model = ASSET_MODEL, id, action, opts = {}) => {
     return strapi.db.query(model)[action]({ where: { id: +id }, ...opts });
   }
   try {
-    return await strapi.documents(model)[action](action === "delete" ? { documentId: String(id) } : { documentId: String(id), ...opts });
+    const docs = strapi.documents(model);
+    return await {
+      findOne: () => docs.findOne({ documentId: String(id), ...opts }),
+      delete: () => docs.delete({ documentId: String(id) }),
+      update: () => docs.update({ documentId: String(id), ...opts })
+    }[action]();
   } catch {
-    return strapi.db.query(model)[action]({ where: { documentId: id }, ...opts });
+    return strapi.db.query(model)[action]({ where: { document_id: id }, ...opts });
   }
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
