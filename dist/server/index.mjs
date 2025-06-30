@@ -513,13 +513,43 @@ const del = async (ctx) => {
   const { documentId } = ctx.params;
   return await asset(documentId, "delete");
 };
+const getByUploadId = async (ctx) => {
+  const { uploadId } = ctx.params;
+  if (!uploadId) {
+    return ctx.badRequest("Upload ID is required");
+  }
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { upload_id: uploadId }
+  });
+};
+const getByAssetId = async (ctx) => {
+  const { assetId } = ctx.params;
+  if (!assetId) {
+    return ctx.badRequest("Asset ID is required");
+  }
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { asset_id: assetId }
+  });
+};
+const getByPlaybackId = async (ctx) => {
+  const { playbackId } = ctx.params;
+  if (!playbackId) {
+    return ctx.badRequest("Playback ID is required");
+  }
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { playback_id: playbackId }
+  });
+};
 const muxAsset = {
   find,
   findOne,
   count,
   create,
   update,
-  del
+  del,
+  getByUploadId,
+  getByAssetId,
+  getByPlaybackId
 };
 function parseRequest(ctx, bodySchema, paramsSchema, querySchema) {
   let bodyObject;
@@ -894,6 +924,36 @@ const routes$2 = [
     }
   },
   {
+    method: "GET",
+    path: "/mux-video-uploader/mux-asset/upload/:uploadId",
+    handler: "mux-asset.getByUploadId",
+    config: {
+      policies: [],
+      prefix: false,
+      description: "Get mux assets by asset ID"
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-video-uploader/mux-asset/asset/:assetId",
+    handler: "mux-asset.getByAssetId",
+    config: {
+      policies: [],
+      prefix: false,
+      description: "Get mux assets by asset ID"
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-video-uploader/mux-asset/playback/:playbackId",
+    handler: "mux-asset.getByPlaybackId",
+    config: {
+      policies: [],
+      prefix: false,
+      description: "Get mux asset by playback ID"
+    }
+  },
+  {
     method: "POST",
     path: "/mux-video-uploader/mux-asset",
     handler: "mux-asset.create",
@@ -955,6 +1015,42 @@ const routes$1 = [
     handler: "mux-asset.findOne",
     config: {
       description: "Returns a MuxAsset based on a supplied document id",
+      policies: []
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-asset/upload/:uploadId",
+    handler: "mux-asset.getByUploadId",
+    config: {
+      description: "Get mux assets by asset ID",
+      policies: []
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-asset/asset/:assetId",
+    handler: "mux-asset.getByAssetId",
+    config: {
+      description: "Get mux assets by asset ID",
+      policies: []
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-asset/playback/:playbackId",
+    handler: "mux-asset.getByPlaybackId",
+    config: {
+      description: "Get mux asset by playback ID",
+      policies: []
+    }
+  },
+  {
+    method: "GET",
+    path: "/mux-settings",
+    handler: "mux-settings.isConfigured",
+    config: {
+      description: "Checks if the Mux settings are configured",
       policies: []
     }
   }

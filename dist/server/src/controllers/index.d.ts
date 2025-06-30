@@ -12,6 +12,9 @@ declare const _default: {
             ok: boolean;
         }>;
         del: (ctx: import("koa").Context) => Promise<any>;
+        getByUploadId: (ctx: import("koa").Context) => Promise<any>;
+        getByAssetId: (ctx: import("koa").Context) => Promise<any>;
+        getByPlaybackId: (ctx: import("koa").Context) => Promise<any>;
     };
     mux: {
         postDirectUpload: (ctx: import("koa").Context) => Promise<void>;

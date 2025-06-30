@@ -11,5 +11,8 @@ declare const _default: {
         ok: boolean;
     }>;
     del: (ctx: Context) => Promise<any>;
+    getByUploadId: (ctx: Context) => Promise<any>;
+    getByAssetId: (ctx: Context) => Promise<any>;
+    getByPlaybackId: (ctx: Context) => Promise<any>;
 };
 export default _default;

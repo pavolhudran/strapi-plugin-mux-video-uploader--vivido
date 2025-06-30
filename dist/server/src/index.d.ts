@@ -32,6 +32,9 @@ declare const _default: {
                 ok: boolean;
             }>;
             del: (ctx: import("koa").Context) => Promise<any>;
+            getByUploadId: (ctx: import("koa").Context) => Promise<any>;
+            getByAssetId: (ctx: import("koa").Context) => Promise<any>;
+            getByPlaybackId: (ctx: import("koa").Context) => Promise<any>;
         };
         mux: {
             postDirectUpload: (ctx: import("koa").Context) => Promise<void>;
@@ -99,6 +102,16 @@ declare const _default: {
                     prefix: boolean;
                     auth: boolean;
                     description?: undefined;
+                };
+            } | {
+                method: string;
+                path: string;
+                handler: string;
+                config: {
+                    policies: any[];
+                    prefix: boolean;
+                    description: string;
+                    auth?: undefined;
                 };
             })[];
         };
