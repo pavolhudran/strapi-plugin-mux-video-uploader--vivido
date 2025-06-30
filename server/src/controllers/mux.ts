@@ -220,6 +220,25 @@ const processWebhookEvent = async (webhookEvent: any) => {
         return undefined;
       }
     }
+    // Handle video.asset.track.ready webhook
+    case 'video.asset.track.ready': {
+      try {
+        const muxAsset = await resolveMuxAsset({ asset_id: data.asset_id });
+        // Fetch the complete asset data from Mux API to get updated tracks
+        const completeAssetData = await getService('mux').getAssetById(data.asset_id);
+        return [
+          muxAsset.id,
+          {
+            data: {
+              asset_data: completeAssetData,
+            },
+          },
+        ] as const;
+      } catch (error) {
+        console.log(`INFO: Skipping video.asset.track.ready webhook - no matching asset_id: ${data.asset_id}`);
+        return undefined;
+      }
+    }
     default:
       return undefined;
   }
