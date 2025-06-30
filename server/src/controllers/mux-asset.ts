@@ -41,11 +41,7 @@ const count = (ctx: Context) => {
 };
 
 const create = async (ctx: Context) => {
-  const body = ctx.request.body;
-
-  console.log('Create request body:', JSON.stringify(body));
-  console.log('Title value:', body?.title);
-  console.log('Title length:', body?.title?.length);
+  const { body } = ctx.request.body;
 
   return await strapi.documents(ASSET_MODEL).create({ data: body });
 };
