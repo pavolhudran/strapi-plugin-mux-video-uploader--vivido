@@ -5,7 +5,7 @@ declare const _default: {
         totalCount: number;
     }>;
     findOne: (ctx: Context) => Promise<any>;
-    count: (ctx: Context) => import("@strapi/types/dist/modules/documents/result/document-engine").Count;
+    count: (ctx: Context) => Promise<number>;
     create: (ctx: Context) => Promise<import("@strapi/types/dist/modules/documents").AnyDocument>;
     update: (ctx: Context) => Promise<{
         ok: boolean;

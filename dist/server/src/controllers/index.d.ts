@@ -6,7 +6,7 @@ declare const _default: {
             totalCount: number;
         }>;
         findOne: (ctx: import("koa").Context) => Promise<any>;
-        count: (ctx: import("koa").Context) => import("@strapi/types/dist/modules/documents/result/document-engine").Count;
+        count: (ctx: import("koa").Context) => Promise<number>;
         create: (ctx: import("koa").Context) => Promise<import("@strapi/types/dist/modules/documents").AnyDocument>;
         update: (ctx: import("koa").Context) => Promise<{
             ok: boolean;

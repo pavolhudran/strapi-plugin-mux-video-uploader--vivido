@@ -475,29 +475,49 @@ async function updateTextTracks(muxAsset2, newTracks) {
     }
   })();
 }
-const search = (ctx) => {
-  const params = ctx.query;
-  if (!params.sort) {
-    params.sort = "createdAt";
+const search = async (ctx) => {
+  try {
+    const params = ctx.query;
+    if (!params.sort) {
+      params.sort = "createdAt";
+    }
+    if (!params.order) {
+      params.order = "desc";
+    }
+    return await strapi.documents(ASSET_MODEL).findMany(params);
+  } catch (error) {
+    console.error("Search error:", error);
+    throw error;
   }
-  if (!params.order) {
-    params.order = "desc";
-  }
-  return strapi.documents(ASSET_MODEL).findMany(params);
 };
 const find = async (ctx) => {
-  const entities = await search(ctx);
-  const totalCount = await count(ctx);
-  const items = entities.map((entity) => entity);
-  return { items, totalCount };
+  try {
+    const entities = await search(ctx);
+    const totalCount = await count(ctx);
+    const items = entities.map((entity) => entity);
+    return { items, totalCount };
+  } catch (error) {
+    console.error("Find error:", error);
+    throw error;
+  }
 };
 const findOne = async (ctx) => {
-  const { documentId } = ctx.params;
-  return await asset(ASSET_MODEL, documentId, "findOne", { filters: ctx.query });
+  try {
+    const { documentId } = ctx.params;
+    return await asset(ASSET_MODEL, documentId, "findOne", { filters: ctx.query });
+  } catch (error) {
+    console.error("FindOne error:", error);
+    throw error;
+  }
 };
-const count = (ctx) => {
-  const params = ctx.query;
-  return strapi.documents(ASSET_MODEL).count(params);
+const count = async (ctx) => {
+  try {
+    const params = ctx.query;
+    return await strapi.documents(ASSET_MODEL).count(params);
+  } catch (error) {
+    console.error("Count error:", error);
+    throw error;
+  }
 };
 const create = async (ctx) => {
   const body = ctx.request.body;
@@ -510,49 +530,74 @@ const create = async (ctx) => {
   }
 };
 const update = async (ctx) => {
-  const { documentId } = ctx.params;
-  const muxAsset2 = await asset(ASSET_MODEL, documentId, "findOne");
-  if (!muxAsset2) {
-    ctx.notFound("mux-asset.notFound");
-    return;
+  try {
+    const { documentId } = ctx.params;
+    const muxAsset2 = await asset(ASSET_MODEL, documentId, "findOne");
+    if (!muxAsset2) {
+      ctx.notFound("mux-asset.notFound");
+      return;
+    }
+    const { title, custom_text_tracks } = ctx.request.body;
+    await updateTextTracks(muxAsset2, custom_text_tracks);
+    if (typeof title === "string" && title) {
+      await asset(ASSET_MODEL, documentId, "update", { data: { title } });
+    }
+    return { ok: true };
+  } catch (error) {
+    console.error("Update error:", error);
+    throw error;
   }
-  const { title, custom_text_tracks } = ctx.request.body;
-  await updateTextTracks(muxAsset2, custom_text_tracks);
-  if (typeof title === "string" && title) {
-    await asset(ASSET_MODEL, documentId, "update", { data: { title } });
-  }
-  return { ok: true };
 };
 const del = async (ctx) => {
-  const { documentId } = ctx.params;
-  return await asset(ASSET_MODEL, documentId, "delete");
+  try {
+    const { documentId } = ctx.params;
+    return await asset(ASSET_MODEL, documentId, "delete");
+  } catch (error) {
+    console.error("Delete error:", error);
+    throw error;
+  }
 };
 const getByUploadId = async (ctx) => {
-  const { uploadId } = ctx.params;
-  if (!uploadId) {
-    return ctx.badRequest("Upload ID is required");
+  try {
+    const { uploadId } = ctx.params;
+    if (!uploadId) {
+      return ctx.badRequest("Upload ID is required");
+    }
+    return await strapi.db.query(ASSET_MODEL).findOne({
+      where: { upload_id: uploadId }
+    });
+  } catch (error) {
+    console.error("GetByUploadId error:", error);
+    throw error;
   }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { upload_id: uploadId }
-  });
 };
 const getByAssetId = async (ctx) => {
-  const { assetId } = ctx.params;
-  if (!assetId) {
-    return ctx.badRequest("Asset ID is required");
+  try {
+    const { assetId } = ctx.params;
+    if (!assetId) {
+      return ctx.badRequest("Asset ID is required");
+    }
+    return await strapi.db.query(ASSET_MODEL).findOne({
+      where: { asset_id: assetId }
+    });
+  } catch (error) {
+    console.error("GetByAssetId error:", error);
+    throw error;
   }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { asset_id: assetId }
-  });
 };
 const getByPlaybackId = async (ctx) => {
-  const { playbackId } = ctx.params;
-  if (!playbackId) {
-    return ctx.badRequest("Playback ID is required");
+  try {
+    const { playbackId } = ctx.params;
+    if (!playbackId) {
+      return ctx.badRequest("Playback ID is required");
+    }
+    return await strapi.db.query(ASSET_MODEL).findOne({
+      where: { playback_id: playbackId }
+    });
+  } catch (error) {
+    console.error("GetByPlaybackId error:", error);
+    throw error;
   }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { playback_id: playbackId }
-  });
 };
 const muxAsset = {
   find,
