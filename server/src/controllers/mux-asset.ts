@@ -31,7 +31,7 @@ const find = async (ctx: Context) => {
 const findOne = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  return await asset(documentId, 'findOne', { filters: ctx.query });
+  return await asset(ASSET_MODEL, documentId, 'findOne', { filters: ctx.query });
 };
 
 const count = (ctx: Context) => {
@@ -41,14 +41,14 @@ const count = (ctx: Context) => {
 };
 
 const create = async (ctx: Context) => {
-  const { body } = ctx.request.body;
+  const body = ctx.request.body;
 
   return await strapi.documents(ASSET_MODEL).create({ data: body });
 };
 
 const update = async (ctx: Context) => {
   const { documentId } = ctx.params;
-  const muxAsset = await asset(documentId, 'findOne');
+  const muxAsset = await asset(ASSET_MODEL, documentId, 'findOne');
 
   if (!muxAsset) {
     ctx.notFound('mux-asset.notFound');
@@ -61,7 +61,7 @@ const update = async (ctx: Context) => {
   await updateTextTracks(muxAsset, custom_text_tracks);
 
   if (typeof title === 'string' && title) {
-    await asset(documentId, 'update', { data: { title } });
+    await asset(ASSET_MODEL, documentId, 'update', { data: { title } });
   }
 
   return { ok: true };
@@ -70,7 +70,7 @@ const update = async (ctx: Context) => {
 const del = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  return await asset(documentId, 'delete');
+  return await asset(ASSET_MODEL, documentId, 'delete');
 };
 
 /**

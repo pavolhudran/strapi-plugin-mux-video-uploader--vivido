@@ -314,7 +314,7 @@ const deleteMuxAsset = async (ctx: Context) => {
   );
 
   // Ensure that the mux-asset entry exists for the id
-  const muxAsset = await asset(params.documentId, 'findOne');
+  const muxAsset = await asset(ASSET_MODEL, params.documentId, 'findOne');
 
   if (!muxAsset) {
     ctx.notFound('mux-asset.notFound');
@@ -325,7 +325,7 @@ const deleteMuxAsset = async (ctx: Context) => {
   const { asset_id, upload_id } = muxAsset;
 
   // Delete mux-asset entry
-  const deleteRes = await asset(params.documentId, 'delete');
+  const deleteRes = await asset(ASSET_MODEL, params.documentId, 'delete');
   if (!deleteRes) {
     ctx.send({ success: false });
     return;
@@ -422,13 +422,10 @@ const signMuxPlaybackId = async (ctx: Context) => {
 const textTrack = async (ctx: Context) => {
   const { documentId } = ctx.params;
 
-  // @ts-ignore - v5 migration
-  // const track = (await strapi.documents(TEXT_TRACK_MODEL).findOne(documentId)) as StoredTextTrack | undefined;
-  const track = (await strapi.db.query(TEXT_TRACK_MODEL).findOne(documentId)) as StoredTextTrack | undefined;
+  const track = (await asset(TEXT_TRACK_MODEL, documentId, 'findOne')) as StoredTextTrack | undefined;
 
   if (!track) {
     ctx.notFound('mux-text-track.notFound');
-
     return;
   }
 
