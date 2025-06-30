@@ -71,23 +71,15 @@ const muxService = () => ({
     // which adds the updated `video_quality` parameter
     const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
 
-    const newAssetSettings: any = {
-      input: uploadConfigToNewAssetInput(config, storedTextTracks),
-      playback_policy: [config.signed ? 'signed' : 'public'],
-      encoding_tier: encodingTier,
-      max_resolution_tier: config.max_resolution_tier,
-    };
-
-    // Use new static_renditions if provided, otherwise fall back to legacy mp4_support
-    if (config.static_renditions && config.static_renditions.length > 0) {
-      newAssetSettings.static_renditions = config.static_renditions;
-    } else if (config.mp4_support && config.mp4_support !== 'none') {
-      newAssetSettings.mp4_support = config.mp4_support;
-    }
-
     return video.uploads.create({
       cors_origin: corsOrigin,
-      new_asset_settings: newAssetSettings,
+      new_asset_settings: {
+        input: uploadConfigToNewAssetInput(config, storedTextTracks),
+        playback_policy: [config.signed ? 'signed' : 'public'],
+        mp4_support: config.mp4_support,
+        encoding_tier: encodingTier,
+        max_resolution_tier: config.max_resolution_tier,
+      },
     });
   },
 
@@ -106,21 +98,13 @@ const muxService = () => ({
     // which adds the updated `video_quality` parameter
     const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
 
-    const assetParams: any = {
+    return video.assets.create({
       input: uploadConfigToNewAssetInput(config, storedTextTracks, url) || [],
       playback_policy: [config.signed ? 'signed' : 'public'],
+      mp4_support: config.mp4_support,
       encoding_tier: encodingTier,
       max_resolution_tier: config.max_resolution_tier,
-    };
-
-    // Use new static_renditions if provided, otherwise fall back to legacy mp4_support
-    if (config.static_renditions && config.static_renditions.length > 0) {
-      assetParams.static_renditions = config.static_renditions;
-    } else if (config.mp4_support && config.mp4_support !== 'none') {
-      assetParams.mp4_support = config.mp4_support;
-    }
-
-    return video.assets.create(assetParams);
+    });
   },
 
   async deleteAsset(assetId: string) {
