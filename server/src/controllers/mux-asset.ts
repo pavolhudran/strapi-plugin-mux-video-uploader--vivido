@@ -68,6 +68,51 @@ const del = async (ctx: Context) => {
   return await asset(documentId, 'delete');
 };
 
+/**
+ * Get mux asset by upload ID
+ */
+const getByUploadId = async (ctx: Context) => {
+  const { uploadId } = ctx.params;
+
+  if (!uploadId) {
+    return ctx.badRequest('Upload ID is required');
+  }
+
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { upload_id: uploadId },
+  });
+};
+
+/**
+ * Get mux assets by asset ID
+ */
+const getByAssetId = async (ctx: Context) => {
+  const { assetId } = ctx.params;
+
+  if (!assetId) {
+    return ctx.badRequest('Asset ID is required');
+  }
+
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { asset_id: assetId },
+  });
+};
+
+/**
+ * Get mux asset by playback ID
+ */
+const getByPlaybackId = async (ctx: Context) => {
+  const { playbackId } = ctx.params;
+
+  if (!playbackId) {
+    return ctx.badRequest('Playback ID is required');
+  }
+
+  return await strapi.db.query(ASSET_MODEL).findOne({
+    where: { playback_id: playbackId },
+  });
+};
+
 export default {
   find,
   findOne,
@@ -75,4 +120,7 @@ export default {
   create,
   update,
   del,
+  getByUploadId,
+  getByAssetId,
+  getByPlaybackId,
 };

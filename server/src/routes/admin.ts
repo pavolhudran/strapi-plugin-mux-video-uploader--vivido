@@ -101,6 +101,36 @@ const routes = [
     },
   },
   {
+    method: 'GET',
+    path: '/mux-video-uploader/mux-asset/upload/:uploadId',
+    handler: 'mux-asset.getByUploadId',
+    config: {
+      policies: [],
+      prefix: false,
+      description: 'Get mux assets by asset ID',
+    },
+  },
+  {
+    method: 'GET',
+    path: '/mux-video-uploader/mux-asset/asset/:assetId',
+    handler: 'mux-asset.getByAssetId',
+    config: {
+      policies: [],
+      prefix: false,
+      description: 'Get mux assets by asset ID',
+    },
+  },
+  {
+    method: 'GET',
+    path: '/mux-video-uploader/mux-asset/playback/:playbackId',
+    handler: 'mux-asset.getByPlaybackId',
+    config: {
+      policies: [],
+      prefix: false,
+      description: 'Get mux asset by playback ID',
+    },
+  },
+  {
     method: 'POST',
     path: '/mux-video-uploader/mux-asset',
     handler: 'mux-asset.create',
