@@ -6,7 +6,7 @@ import React from "react";
 import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { WarningCircle, Lock, Earth, Plus, Download, Trash, Pencil, Duplicate } from "@strapi/icons";
-import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-CZKtDqNq.mjs";
+import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-DgMuDwVZ.mjs";
 import { Duration } from "luxon";
 import { createUpload } from "@mux/upchunk";
 import { useFormik } from "formik";
@@ -453,7 +453,7 @@ function TrackForm({
     e.preventDefault();
     if (!muxAsset?.playback_id || !track.stored_track)
       return;
-    const token = await video(muxAsset);
+    const token = muxAsset.signed ? await video(muxAsset) : null;
     const trackUrl = getMuxTextTrackUrl({
       playback_id: muxAsset.playback_id,
       track: track.stored_track,
@@ -1766,4 +1766,4 @@ const App = () => {
 export {
   App as default
 };
-//# sourceMappingURL=App-DqbrhA92.mjs.map
+//# sourceMappingURL=App-C4phIIXt.mjs.map
