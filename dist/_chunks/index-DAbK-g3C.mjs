@@ -55,7 +55,7 @@ const index = {
         defaultMessage: "Mux Video Uploader"
       },
       permissions: [pluginPermissions.mainRead],
-      Component: () => import("./App-C4phIIXt.mjs")
+      Component: () => import("./App-fSE2QtOn.mjs")
     });
     app.registerPlugin({
       id: PLUGIN_ID,
@@ -90,4 +90,4 @@ export {
   index as i,
   pluginPermissions as p
 };
-//# sourceMappingURL=index-DgMuDwVZ.mjs.map
+//# sourceMappingURL=index-DAbK-g3C.mjs.map
