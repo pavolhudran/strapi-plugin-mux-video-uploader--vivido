@@ -877,18 +877,48 @@ const processWebhookEvent = async (webhookEvent) => {
           );
           if (newTextTracks.length > 0) {
             try {
-              const tracksToStore = newTextTracks.map((track) => ({
-                name: track.name,
-                language_code: track.language_code,
-                closed_captions: track.closed_captions || false,
-                file: {
-                  contents: "",
-                  // Empty for generated tracks - content is served from Mux
-                  type: "text/vtt",
-                  name: `${track.name}.vtt`,
-                  size: 0
-                }
-              }));
+              const signedToken = muxAsset2.signed ? (await getService("mux").signPlaybackId(muxAsset2.playback_id, "video")).token : void 0;
+              const tracksToStore = await Promise.all(
+                newTextTracks.map(async (track) => {
+                  try {
+                    const trackUrl = getMuxTextTrackUrl({
+                      playback_id: muxAsset2.playback_id,
+                      track: { id: track.id },
+                      signedToken
+                    });
+                    const response = await fetch(trackUrl);
+                    if (!response.ok) {
+                      throw new Error(`Failed to fetch track: ${response.statusText}`);
+                    }
+                    const contents = await response.text();
+                    const contentLength = response.headers.get("content-length");
+                    return {
+                      name: track.name,
+                      language_code: track.language_code,
+                      closed_captions: track.closed_captions || false,
+                      file: {
+                        contents,
+                        type: "text/vtt",
+                        name: `${track.name}.vtt`,
+                        size: contentLength ? parseInt(contentLength) : contents.length
+                      }
+                    };
+                  } catch (fetchError) {
+                    console.log(`INFO: Failed to fetch content for track ${track.id}:`, fetchError);
+                    return {
+                      name: track.name,
+                      language_code: track.language_code,
+                      closed_captions: track.closed_captions || false,
+                      file: {
+                        contents: "",
+                        type: "text/vtt",
+                        name: `${track.name}.vtt`,
+                        size: 0
+                      }
+                    };
+                  }
+                })
+              );
               await storeTextTracks(tracksToStore);
             } catch (trackError) {
               console.log(`INFO: Failed to store text tracks:`, trackError);
