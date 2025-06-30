@@ -5,13 +5,11 @@ export declare const SignedTokensContext: React.Context<{
     video: SignFunction;
     thumbnail: SignFunction;
     storyboard: SignFunction;
-    animated: SignFunction;
 }>;
 export declare function useSignedTokens(): {
     video: SignFunction;
     thumbnail: SignFunction;
     storyboard: SignFunction;
-    animated: SignFunction;
 };
 export default function SignedTokensProvider({ muxAsset, children }: React.PropsWithChildren<{
     muxAsset?: MuxAsset;

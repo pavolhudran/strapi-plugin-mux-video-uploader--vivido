@@ -165,17 +165,6 @@ export declare const UploadConfig: z.ZodEffects<z.ZodObject<{
      */
     mp4_support: z.ZodDefault<z.ZodEnum<["none", "standard"]>>;
     /**
-     * Static renditions configuration using the new API (replaces mp4_support)
-     * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
-     */
-    static_renditions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        resolution: z.ZodEnum<["highest", "audio-only"]>;
-    }, "strip", z.ZodTypeAny, {
-        resolution?: "highest" | "audio-only";
-    }, {
-        resolution?: "highest" | "audio-only";
-    }>, "many">>;
-    /**
      * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
      * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
      * @defaultValue '1080p'
@@ -250,9 +239,6 @@ export declare const UploadConfig: z.ZodEffects<z.ZodObject<{
     upload_type: z.ZodDefault<z.ZodEnum<["file", "url"]>>;
 }, "strip", z.ZodTypeAny, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -275,9 +261,6 @@ export declare const UploadConfig: z.ZodEffects<z.ZodObject<{
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -300,9 +283,6 @@ export declare const UploadConfig: z.ZodEffects<z.ZodObject<{
     upload_type?: "file" | "url";
 }>, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -325,9 +305,6 @@ export declare const UploadConfig: z.ZodEffects<z.ZodObject<{
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -383,17 +360,6 @@ export declare const UploadData: z.ZodIntersection<z.ZodIntersection<z.ZodObject
      */
     mp4_support: z.ZodDefault<z.ZodEnum<["none", "standard"]>>;
     /**
-     * Static renditions configuration using the new API (replaces mp4_support)
-     * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
-     */
-    static_renditions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        resolution: z.ZodEnum<["highest", "audio-only"]>;
-    }, "strip", z.ZodTypeAny, {
-        resolution?: "highest" | "audio-only";
-    }, {
-        resolution?: "highest" | "audio-only";
-    }>, "many">>;
-    /**
      * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
      * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
      * @defaultValue '1080p'
@@ -468,9 +434,6 @@ export declare const UploadData: z.ZodIntersection<z.ZodIntersection<z.ZodObject
     upload_type: z.ZodDefault<z.ZodEnum<["file", "url"]>>;
 }, "strip", z.ZodTypeAny, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -493,9 +456,6 @@ export declare const UploadData: z.ZodIntersection<z.ZodIntersection<z.ZodObject
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -518,9 +478,6 @@ export declare const UploadData: z.ZodIntersection<z.ZodIntersection<z.ZodObject
     upload_type?: "file" | "url";
 }>, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -543,9 +500,6 @@ export declare const UploadData: z.ZodIntersection<z.ZodIntersection<z.ZodObject
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -601,17 +555,6 @@ export declare const UploadDataWithoutFile: z.ZodIntersection<z.ZodIntersection<
      */
     mp4_support: z.ZodDefault<z.ZodEnum<["none", "standard"]>>;
     /**
-     * Static renditions configuration using the new API (replaces mp4_support)
-     * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
-     */
-    static_renditions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        resolution: z.ZodEnum<["highest", "audio-only"]>;
-    }, "strip", z.ZodTypeAny, {
-        resolution?: "highest" | "audio-only";
-    }, {
-        resolution?: "highest" | "audio-only";
-    }>, "many">>;
-    /**
      * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
      * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
      * @defaultValue '1080p'
@@ -686,9 +629,6 @@ export declare const UploadDataWithoutFile: z.ZodIntersection<z.ZodIntersection<
     upload_type: z.ZodDefault<z.ZodEnum<["file", "url"]>>;
 }, "strip", z.ZodTypeAny, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -711,9 +651,6 @@ export declare const UploadDataWithoutFile: z.ZodIntersection<z.ZodIntersection<
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -736,9 +673,6 @@ export declare const UploadDataWithoutFile: z.ZodIntersection<z.ZodIntersection<
     upload_type?: "file" | "url";
 }>, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;
@@ -761,9 +695,6 @@ export declare const UploadDataWithoutFile: z.ZodIntersection<z.ZodIntersection<
     upload_type?: "file" | "url";
 }, {
     mp4_support?: "none" | "standard";
-    static_renditions?: {
-        resolution?: "highest" | "audio-only";
-    }[];
     max_resolution_tier?: "2160p" | "1440p" | "1080p";
     video_quality?: "basic" | "plus";
     signed?: boolean;

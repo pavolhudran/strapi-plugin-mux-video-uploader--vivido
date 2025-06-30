@@ -196,7 +196,7 @@ const contentTypes = {
   "mux-asset": { schema: muxAsset$1 },
   "mux-text-track": { schema: muxTextTrack }
 };
-const pluginId$1 = PLUGIN_NAME;
+const pluginId$1 = "mux-video-uploader";
 const ASSET_MODEL = `plugin::${pluginId$1}.mux-asset`;
 const TEXT_TRACK_MODEL = `plugin::${pluginId$1}.mux-text-track`;
 const resolveMuxAsset = async (filters) => {
@@ -258,15 +258,6 @@ const UploadConfig = z.object({
    */
   mp4_support: z.enum(["none", "standard"]).default("none"),
   /**
-   * Static renditions configuration using the new API (replaces mp4_support)
-   * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
-   */
-  static_renditions: z.array(
-    z.object({
-      resolution: z.enum(["highest", "audio-only"])
-    })
-  ).optional(),
-  /**
    * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
    * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
    * @defaultValue '1080p'
@@ -297,9 +288,7 @@ const UploadConfig = z.object({
     return {
       ...v,
       max_resolution_tier: "1080p",
-      mp4_support: "none",
-      static_renditions: void 0
-      // Basic quality doesn't support static renditions
+      mp4_support: "none"
     };
   }
   return v;
@@ -519,43 +508,13 @@ const del = async (ctx) => {
   const { documentId } = ctx.params;
   return await strapi.documents(ASSET_MODEL).delete(documentId);
 };
-const getByUploadId = async (ctx) => {
-  const { uploadId } = ctx.params;
-  if (!uploadId) {
-    return ctx.badRequest("Upload ID is required");
-  }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { upload_id: uploadId }
-  });
-};
-const getByAssetId = async (ctx) => {
-  const { assetId } = ctx.params;
-  if (!assetId) {
-    return ctx.badRequest("Asset ID is required");
-  }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { asset_id: assetId }
-  });
-};
-const getByPlaybackId = async (ctx) => {
-  const { playbackId } = ctx.params;
-  if (!playbackId) {
-    return ctx.badRequest("Playback ID is required");
-  }
-  return await strapi.db.query(ASSET_MODEL).findOne({
-    where: { playback_id: playbackId }
-  });
-};
 const muxAsset = {
   find,
   findOne,
   count,
   create,
   update,
-  del,
-  getByUploadId,
-  getByAssetId,
-  getByPlaybackId
+  del
 };
 function parseRequest(ctx, bodySchema, paramsSchema, querySchema) {
   let bodyObject;
@@ -606,197 +565,50 @@ const processWebhookEvent = async (webhookEvent) => {
   const { type: type2, data } = webhookEvent;
   switch (type2) {
     case "video.upload.asset_created": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: { asset_id: data.asset_id }
-          }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.upload.asset_created webhook - no matching upload_id: ${data.id}`);
-        return void 0;
-      }
+      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+      return [
+        muxAsset2.id,
+        {
+          data: { asset_id: data.asset_id }
+        }
+      ];
     }
     case "video.asset.ready": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              playback_id: data.playback_ids[0].id,
-              duration: data.duration,
-              aspect_ratio: data.aspect_ratio,
-              isReady: true,
-              asset_data: data
-            }
+      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+      return [
+        muxAsset2.id,
+        {
+          data: {
+            playback_id: data.playback_ids[0].id,
+            duration: data.duration,
+            aspect_ratio: data.aspect_ratio,
+            isReady: true,
+            asset_data: data
           }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.asset.ready webhook - no matching asset_id: ${data.id}`);
-        return void 0;
-      }
-    }
-    case "video.asset.updated": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: data
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.asset.updated webhook - no matching asset_id: ${data.id}`);
-        return void 0;
-      }
-    }
-    case "video.asset.static_renditions.ready": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: data
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.asset.static_renditions.ready webhook - no matching asset_id: ${data.id}`);
-        return void 0;
-      }
-    }
-    case "video.asset.static_rendition.ready": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: completeAssetData
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(
-          `INFO: Skipping video.asset.static_rendition.ready webhook - no matching asset_id: ${data.asset_id}`
-        );
-        return void 0;
-      }
-    }
-    case "video.asset.static_rendition.created": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: completeAssetData
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(
-          `INFO: Skipping video.asset.static_rendition.created webhook - no matching asset_id: ${data.asset_id}`
-        );
-        return void 0;
-      }
-    }
-    case "video.asset.static_rendition.errored": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: completeAssetData
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(
-          `INFO: Skipping video.asset.static_rendition.errored webhook - no matching asset_id: ${data.asset_id}`
-        );
-        return void 0;
-      }
-    }
-    case "video.asset.static_rendition.skipped": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: completeAssetData
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(
-          `INFO: Skipping video.asset.static_rendition.skipped webhook - no matching asset_id: ${data.asset_id}`
-        );
-        return void 0;
-      }
-    }
-    case "video.asset.static_rendition.deleted": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.asset_id });
-        const completeAssetData = await getService("mux").getAssetById(data.asset_id);
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              asset_data: completeAssetData
-            }
-          }
-        ];
-      } catch (error) {
-        console.log(
-          `INFO: Skipping video.asset.static_rendition.deleted webhook - no matching asset_id: ${data.asset_id}`
-        );
-        return void 0;
-      }
+        }
+      ];
     }
     case "video.upload.errored": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              error_message: `There was an unexpected error during upload`
-            }
+      const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
+      return [
+        muxAsset2.id,
+        {
+          data: {
+            error_message: `There was an unexpected error during upload`
           }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.upload.errored webhook - no matching upload_id: ${data.id}`);
-        return void 0;
-      }
+        }
+      ];
     }
     case "video.asset.errored": {
-      try {
-        const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
-        return [
-          muxAsset2.id,
-          {
-            data: {
-              error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
-            }
+      const muxAsset2 = await resolveMuxAsset({ asset_id: data.id });
+      return [
+        muxAsset2.id,
+        {
+          data: {
+            error_message: `${data.errors.type}: ${data.errors.messages[0] || ""}`
           }
-        ];
-      } catch (error) {
-        console.log(`INFO: Skipping video.asset.errored webhook - no matching asset_id: ${data.id}`);
-        return void 0;
-      }
+        }
+      ];
     }
     default:
       return void 0;
@@ -804,94 +616,28 @@ const processWebhookEvent = async (webhookEvent) => {
 };
 const thumbnail = async (ctx) => {
   const { documentId } = ctx.params;
-  const { token, time, width, height, rotate, fit_mode, flip_v, flip_h, format = "jpg" } = ctx.query;
-  let imageUrl = `https://image.mux.com/${documentId}/thumbnail.${format}`;
-  const queryParams = new URLSearchParams();
+  const { token } = ctx.query;
+  let imageUrl = `https://image.mux.com/${documentId}/thumbnail.jpg`;
   if (token) {
-    queryParams.append("token", token);
-  }
-  if (time !== void 0) {
-    queryParams.append("time", time);
-  }
-  if (width !== void 0) {
-    queryParams.append("width", width);
-  }
-  if (height !== void 0) {
-    queryParams.append("height", height);
-  }
-  if (rotate !== void 0) {
-    queryParams.append("rotate", rotate);
-  }
-  if (fit_mode !== void 0) {
-    queryParams.append("fit_mode", fit_mode);
-  }
-  if (flip_v !== void 0) {
-    queryParams.append("flip_v", flip_v);
-  }
-  if (flip_h !== void 0) {
-    queryParams.append("flip_h", flip_h);
-  }
-  const queryString = queryParams.toString();
-  if (queryString) {
-    imageUrl += `?${queryString}`;
+    imageUrl += `?token=${token}`;
   }
   const response = await axios.get(imageUrl, {
     responseType: "stream"
   });
-  const contentType = `image/${format}`;
-  ctx.response.set("content-type", contentType);
+  ctx.response.set("content-type", "image/jpeg");
   ctx.body = response.data;
 };
 const storyboard = async (ctx) => {
   const { documentId } = ctx.params;
-  const { token, format = "webp" } = ctx.query;
-  const extension = ctx.path.endsWith(".json") ? "json" : "vtt";
-  let imageUrl = `https://image.mux.com/${documentId}/storyboard.${extension}`;
-  const queryParams = new URLSearchParams();
-  queryParams.append("format", format);
+  const { token } = ctx.query;
+  let imageUrl = `https://image.mux.com/${documentId}/storyboard.vtt?format=webp`;
   if (token) {
-    queryParams.append("token", token);
-  }
-  imageUrl += `?${queryParams.toString()}`;
-  const response = await axios.get(imageUrl, {
-    responseType: "stream"
-  });
-  const contentType = `application/${extension}`;
-  ctx.response.set("content-type", contentType);
-  ctx.body = response.data;
-};
-const animated = async (ctx) => {
-  const { documentId } = ctx.params;
-  const { token, start, end, width, height, fps, format = "gif" } = ctx.query;
-  let imageUrl = `https://image.mux.com/${documentId}/animated.${format}`;
-  const queryParams = new URLSearchParams();
-  if (start !== void 0) {
-    queryParams.append("start", start);
-  }
-  if (end !== void 0) {
-    queryParams.append("end", end);
-  }
-  if (width !== void 0) {
-    queryParams.append("width", width);
-  }
-  if (height !== void 0) {
-    queryParams.append("height", height);
-  }
-  if (fps !== void 0) {
-    queryParams.append("fps", fps);
-  }
-  if (token) {
-    queryParams.append("token", token);
-  }
-  const queryString = queryParams.toString();
-  if (queryString) {
-    imageUrl += `?${queryString}`;
+    imageUrl += `&token=${token}`;
   }
   const response = await axios.get(imageUrl, {
     responseType: "stream"
   });
-  const contentType = `image/${format}`;
-  ctx.response.set("content-type", contentType);
+  ctx.response.set("content-type", "text/vtt");
   ctx.body = response.data;
 };
 async function parseUploadRequest(ctx) {
@@ -981,22 +727,16 @@ const muxWebhookHandler = async (ctx) => {
   if (Array.isArray(sigHttpHeader)) {
     sigHttpHeader[0];
   }
-  try {
-    const outcome = await processWebhookEvent(body);
-    if (outcome === void 0) {
-      ctx.send("ignored");
-    } else {
-      const [id, params] = outcome;
-      const result = await strapi.documents(ASSET_MODEL).update({
-        documentId: id.toString(),
-        data: params.data
-      });
-      ctx.send(result);
-    }
-  } catch (error) {
-    strapi.log.error("Webhook processing failed:", error);
-    ctx.status = 500;
-    ctx.send({ error: "Webhook processing failed" });
+  const outcome = await processWebhookEvent(body);
+  if (outcome === void 0) {
+    ctx.send("ignored");
+  } else {
+    const [id, params] = outcome;
+    const result = await strapi.db.query(ASSET_MODEL).update({
+      where: { id },
+      data: params.data
+    });
+    ctx.send(result);
   }
 };
 const signMuxPlaybackId = async (ctx) => {
@@ -1025,8 +765,7 @@ const mux = {
   thumbnail,
   storyboard,
   signMuxPlaybackId,
-  textTrack,
-  animated
+  textTrack
 };
 const isConfigured = async (ctx) => {
   const { accessTokenId, secretKey, webhookSigningSecret } = await getConfig();
@@ -1106,16 +845,6 @@ const routes$2 = [
   },
   {
     method: "GET",
-    path: "/mux-video-uploader/animated/:documentId",
-    handler: "mux.animated",
-    config: {
-      auth: false,
-      prefix: false,
-      description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard"
-    }
-  },
-  {
-    method: "GET",
     path: "/mux-video-uploader/sign/:documentId",
     handler: "mux.signMuxPlaybackId",
     config: {
@@ -1160,36 +889,6 @@ const routes$2 = [
     }
   },
   {
-    method: "GET",
-    path: "/mux-video-uploader/mux-asset/upload/:uploadId",
-    handler: "mux-asset.getByUploadId",
-    config: {
-      policies: [],
-      prefix: false,
-      description: "Get mux assets by asset ID"
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-video-uploader/mux-asset/asset/:assetId",
-    handler: "mux-asset.getByAssetId",
-    config: {
-      policies: [],
-      prefix: false,
-      description: "Get mux assets by asset ID"
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-video-uploader/mux-asset/playback/:playbackId",
-    handler: "mux-asset.getByPlaybackId",
-    config: {
-      policies: [],
-      prefix: false,
-      description: "Get mux asset by playback ID"
-    }
-  },
-  {
     method: "POST",
     path: "/mux-video-uploader/mux-asset",
     handler: "mux-asset.create",
@@ -1228,78 +927,6 @@ const routes$2 = [
 ];
 const routes$1 = [
   {
-    method: "POST",
-    path: "/direct-upload",
-    handler: "mux.postDirectUpload",
-    config: {
-      description: "Proxies direct upload requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "POST",
-    path: "/remote-upload",
-    handler: "mux.postRemoteUpload",
-    config: {
-      description: "Proxies remote upload requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "DELETE",
-    path: "/mux-asset/:documentId",
-    handler: "mux.deleteMuxAsset",
-    config: {
-      description: "Deletes a MuxAsset based on a supplied document id",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/thumbnail/:documentId",
-    handler: "mux.thumbnail",
-    config: {
-      description: "Proxies thumbnail requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/storyboard/:documentId",
-    handler: "mux.storyboard",
-    config: {
-      description: "Proxies storyboard requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/animated/:documentId",
-    handler: "mux.animated",
-    config: {
-      description: "Proxies animated requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/sign/:documentId",
-    handler: "mux.signMuxPlaybackId",
-    config: {
-      description: "Proxies sign playback ID requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-text-tracks/:documentId",
-    handler: "mux.textTrack",
-    config: {
-      description: "Proxies text track requests to load correctly within the Strapi Admin Dashboard",
-      policies: []
-    }
-  },
-  {
     method: "GET",
     path: "/mux-asset",
     handler: "mux-asset.find",
@@ -1323,69 +950,6 @@ const routes$1 = [
     handler: "mux-asset.findOne",
     config: {
       description: "Returns a MuxAsset based on a supplied document id",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-asset/upload/:uploadId",
-    handler: "mux-asset.getByUploadId",
-    config: {
-      description: "Get mux assets by asset ID",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-asset/asset/:assetId",
-    handler: "mux-asset.getByAssetId",
-    config: {
-      description: "Get mux assets by asset ID",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-asset/playback/:playbackId",
-    handler: "mux-asset.getByPlaybackId",
-    config: {
-      description: "Get mux asset by playback ID",
-      policies: []
-    }
-  },
-  {
-    method: "POST",
-    path: "/mux-asset",
-    handler: "mux-asset.create",
-    config: {
-      description: "Creates a MuxAsset",
-      policies: []
-    }
-  },
-  {
-    method: "PUT",
-    path: "/mux-asset/:documentId",
-    handler: "mux-asset.update",
-    config: {
-      description: "Updates a MuxAsset based on a supplied document id",
-      policies: []
-    }
-  },
-  {
-    method: "DELETE",
-    path: "/mux-asset/:documentId",
-    handler: "mux-asset.del",
-    config: {
-      description: "Deletes a MuxAsset based on a supplied document id",
-      policies: []
-    }
-  },
-  {
-    method: "GET",
-    path: "/mux-settings",
-    handler: "mux-settings.isConfigured",
-    config: {
-      description: "Checks if the Mux settings are configured",
       policies: []
     }
   }
@@ -1535,20 +1099,15 @@ const muxService = () => ({
   }) {
     const { video } = await getMuxClient();
     const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
-    const newAssetSettings = {
-      input: uploadConfigToNewAssetInput(config2, storedTextTracks),
-      playback_policy: [config2.signed ? "signed" : "public"],
-      encoding_tier: encodingTier,
-      max_resolution_tier: config2.max_resolution_tier
-    };
-    if (config2.static_renditions && config2.static_renditions.length > 0) {
-      newAssetSettings.static_renditions = config2.static_renditions;
-    } else if (config2.mp4_support && config2.mp4_support !== "none") {
-      newAssetSettings.mp4_support = config2.mp4_support;
-    }
     return video.uploads.create({
       cors_origin: corsOrigin,
-      new_asset_settings: newAssetSettings
+      new_asset_settings: {
+        input: uploadConfigToNewAssetInput(config2, storedTextTracks),
+        playback_policy: [config2.signed ? "signed" : "public"],
+        mp4_support: config2.mp4_support,
+        encoding_tier: encodingTier,
+        max_resolution_tier: config2.max_resolution_tier
+      }
     });
   },
   async createRemoteAsset({
@@ -1558,18 +1117,13 @@ const muxService = () => ({
   }) {
     const { video } = await getMuxClient();
     const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
-    const assetParams = {
+    return video.assets.create({
       input: uploadConfigToNewAssetInput(config2, storedTextTracks, url) || [],
       playback_policy: [config2.signed ? "signed" : "public"],
+      mp4_support: config2.mp4_support,
       encoding_tier: encodingTier,
       max_resolution_tier: config2.max_resolution_tier
-    };
-    if (config2.static_renditions && config2.static_renditions.length > 0) {
-      assetParams.static_renditions = config2.static_renditions;
-    } else if (config2.mp4_support && config2.mp4_support !== "none") {
-      assetParams.mp4_support = config2.mp4_support;
-    }
-    return video.assets.create(assetParams);
+    });
   },
   async deleteAsset(assetId) {
     const { video } = await getMuxClient();

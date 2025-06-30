@@ -6,7 +6,7 @@ import React from "react";
 import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { WarningCircle, Lock, Earth, Plus, Download, Trash, Pencil, Duplicate } from "@strapi/icons";
-import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-NqTnio1y.mjs";
+import { P as PLUGIN_ID, g as getTranslation, p as pluginPermissions } from "./index-CZKtDqNq.mjs";
 import { Duration } from "luxon";
 import { createUpload } from "@mux/upchunk";
 import { useFormik } from "formik";
@@ -28,8 +28,7 @@ const secondsToFormattedString = (seconds) => {
 const SignedTokensContext = React.createContext({
   video: async () => null,
   thumbnail: async () => null,
-  storyboard: async () => null,
-  animated: async () => null
+  storyboard: async () => null
 });
 function useSignedTokens() {
   return React.useContext(SignedTokensContext);
@@ -48,18 +47,13 @@ function SignedTokensProvider({ muxAsset, children }) {
     const { data } = await get(`${PLUGIN_ID}/sign/${muxAsset2.playback_id}?type=storyboard`);
     return data.token;
   };
-  const animated = async function(muxAsset2) {
-    const { data } = await get(`${PLUGIN_ID}/sign/${muxAsset2.playback_id}?type=animated`);
-    return data.token;
-  };
   return /* @__PURE__ */ jsx(
     SignedTokensContext.Provider,
     {
       value: {
         video,
         thumbnail,
-        storyboard,
-        animated
+        storyboard
       },
       children
     }
@@ -368,15 +362,6 @@ const UploadConfig = z.object({
    */
   mp4_support: z.enum(["none", "standard"]).default("none"),
   /**
-   * Static renditions configuration using the new API (replaces mp4_support)
-   * @see {@link https://docs.mux.com/guides/enable-static-mp4-renditions}
-   */
-  static_renditions: z.array(
-    z.object({
-      resolution: z.enum(["highest", "audio-only"])
-    })
-  ).optional(),
-  /**
    * Max resolution tier can be used to control the maximum resolution_tier your asset is encoded, stored, and streamed at.
    * @see {@link https://docs.mux.com/guides/stream-videos-in-4k}
    * @defaultValue '1080p'
@@ -407,9 +392,7 @@ const UploadConfig = z.object({
     return {
       ...v,
       max_resolution_tier: "1080p",
-      mp4_support: "none",
-      static_renditions: void 0
-      // Basic quality doesn't support static renditions
+      mp4_support: "none"
     };
   }
   return v;
@@ -470,7 +453,7 @@ function TrackForm({
     e.preventDefault();
     if (!muxAsset?.playback_id || !track.stored_track)
       return;
-    const token = muxAsset.signed ? await video(muxAsset) : null;
+    const token = await video(muxAsset);
     const trackUrl = getMuxTextTrackUrl({
       playback_id: muxAsset.playback_id,
       track: track.stored_track,
@@ -1245,19 +1228,16 @@ const PreviewPlayer = (props) => {
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
   );
   const [storyboardUrl, setStoryboardUrl] = React.useState();
-  const [animatedUrl, setAnimatedUrl] = React.useState();
-  const { video, thumbnail, storyboard, animated } = useSignedTokens();
+  const { video, thumbnail, storyboard } = useSignedTokens();
   const init = async (muxAsset2) => {
     const { playback_id } = muxAsset2;
     if (muxAsset2.playback_id !== null && muxAsset2.signed) {
       const videoToken2 = await video(muxAsset2);
       const thumbnailToken = await thumbnail(muxAsset2);
       const storyboardToken = await storyboard(muxAsset2);
-      const animatedToken = await animated(muxAsset2);
       setVideoToken(videoToken2);
       setPosterUrl(`/${PLUGIN_ID}/thumbnail/${playback_id}?token=${thumbnailToken}`);
       setStoryboardUrl(`/${PLUGIN_ID}/storyboard/${playback_id}?token=${storyboardToken}`);
-      setAnimatedUrl(`/${PLUGIN_ID}/animated/${playback_id}?token=${animatedToken}`);
     } else if (muxAsset2.playback_id !== null) {
       setPosterUrl(`/${PLUGIN_ID}/thumbnail/${playback_id}`);
     }
@@ -1786,4 +1766,4 @@ const App = () => {
 export {
   App as default
 };
-//# sourceMappingURL=App-CLwdCPoH.mjs.map
+//# sourceMappingURL=App-DqbrhA92.mjs.map

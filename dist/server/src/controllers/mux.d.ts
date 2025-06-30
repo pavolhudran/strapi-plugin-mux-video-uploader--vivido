@@ -8,6 +8,5 @@ declare const _default: {
     storyboard: (ctx: Context) => Promise<void>;
     signMuxPlaybackId: (ctx: Context) => Promise<void>;
     textTrack: (ctx: Context) => Promise<void>;
-    animated: (ctx: Context) => Promise<void>;
 };
 export default _default;

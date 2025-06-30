@@ -14,8 +14,5 @@ declare const _default: {
         documentId: string;
         entries: import("@strapi/types/dist/modules/documents").AnyDocument[];
     }>;
-    getByUploadId: (ctx: Context) => Promise<any>;
-    getByAssetId: (ctx: Context) => Promise<any>;
-    getByPlaybackId: (ctx: Context) => Promise<any>;
 };
 export default _default;

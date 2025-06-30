@@ -51,16 +51,6 @@ declare const routes: {
                 auth: boolean;
                 description?: undefined;
             };
-        } | {
-            method: string;
-            path: string;
-            handler: string;
-            config: {
-                policies: any[];
-                prefix: boolean;
-                description: string;
-                auth?: undefined;
-            };
         })[];
     };
     'content-api': {
