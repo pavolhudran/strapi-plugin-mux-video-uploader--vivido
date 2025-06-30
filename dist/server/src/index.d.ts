@@ -331,6 +331,16 @@ declare const _default: {
                         private: boolean;
                         required: boolean;
                     };
+                    track_id: {
+                        type: string;
+                        private: boolean;
+                        required: boolean;
+                    };
+                    asset_id: {
+                        type: string;
+                        private: boolean;
+                        required: boolean;
+                    };
                 };
             };
         };

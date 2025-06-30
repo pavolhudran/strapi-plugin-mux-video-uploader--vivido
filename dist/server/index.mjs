@@ -189,6 +189,16 @@ const muxTextTrack = {
       type: "json",
       private: false,
       required: true
+    },
+    track_id: {
+      type: "string",
+      private: false,
+      required: false
+    },
+    asset_id: {
+      type: "string",
+      private: false,
+      required: false
     }
   }
 };
@@ -892,6 +902,8 @@ const processWebhookEvent = async (webhookEvent) => {
                       name: track.name,
                       language_code: track.language_code,
                       closed_captions: track.closed_captions || false,
+                      track_id: track.id,
+                      asset_id: data.asset_id,
                       file: {
                         contents,
                         type: "text/vtt",
@@ -905,6 +917,8 @@ const processWebhookEvent = async (webhookEvent) => {
                       name: track.name,
                       language_code: track.language_code,
                       closed_captions: track.closed_captions || false,
+                      track_id: track.id,
+                      asset_id: data.asset_id,
                       file: {
                         contents: "",
                         type: "text/vtt",
