@@ -1141,12 +1141,77 @@ const muxWebhookHandler = async (ctx) => {
     ctx.send({ error: "Webhook processing failed" });
   }
 };
+const SIGNABLE_TYPES = ["video", "thumbnail", "storyboard", "animated"];
+const GATED_TYPES = ["video", "storyboard"];
+const resolveOwningContent = async (assetDocumentId, relations, status) => {
+  for (const entityType of relations) {
+    const entity = await strapi.documents(`api::${entityType}.${entityType}`).findFirst({
+      status,
+      filters: { mux_asset: { documentId: { $eq: assetDocumentId } } },
+      fields: ["documentId", "pricing", "deleted_at"],
+      populate: { profile: { fields: ["documentId"], populate: { user: { fields: ["id"] } } } }
+    });
+    if (entity)
+      return { entityType, entity };
+  }
+  return void 0;
+};
 const signMuxPlaybackId = async (ctx) => {
-  const { documentId } = ctx.params;
+  const { documentId: playbackId } = ctx.params;
   const { type: type2 } = ctx.query;
-  const result = await getService("mux").signPlaybackId(documentId, type2);
+  if (typeof type2 !== "string" || !SIGNABLE_TYPES.includes(type2)) {
+    ctx.badRequest("Invalid or missing type");
+    return;
+  }
+  const asset = await strapi.db.query(ASSET_MODEL).findOne({ where: { playback_id: playbackId } });
+  if (!asset) {
+    ctx.notFound("mux-asset.notFound");
+    return;
+  }
+  const attributes = strapi.contentType(ASSET_MODEL)?.attributes ?? {};
+  const contentRelations = ["lesson", "course"].filter((relation) => relation in attributes);
+  if (GATED_TYPES.includes(type2) && contentRelations.length > 0) {
+    const published = await resolveOwningContent(asset.documentId, contentRelations, "published");
+    const owning = published ?? await resolveOwningContent(asset.documentId, contentRelations, "draft");
+    if (owning) {
+      const { entity, entityType } = owning;
+      const isLive = Boolean(published) && !entity.deleted_at;
+      const isFree = isLive && Array.isArray(entity.pricing) && entity.pricing.includes("free");
+      if (!isFree) {
+        const isAdminPanel = ctx.state.auth?.strategy?.name === "admin";
+        if (!isAdminPanel) {
+          const user = ctx.state.user;
+          if (!user) {
+            ctx.unauthorized();
+            return;
+          }
+          const isAdmin = user.role?.type === "admin";
+          const isOwner = entity.profile?.user?.id === user.id;
+          if (!isAdmin && !isOwner) {
+            let entitled = false;
+            if (isLive) {
+              const entitlementService = strapi.services?.["api::entitlement.entitlement"];
+              if (typeof entitlementService?.checkPaidSingle !== "function") {
+                strapi.log.warn(
+                  "signMuxPlaybackId: api::entitlement.entitlement.checkPaidSingle unavailable — refusing to sign paid content"
+                );
+              } else {
+                entitled = await entitlementService.checkPaidSingle(user, entity.documentId, entityType);
+              }
+            }
+            if (!entitled) {
+              ctx.forbidden();
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+  const result = await getService("mux").signPlaybackId(playbackId, type2);
   ctx.send(result);
 };
+signMuxPlaybackId.entitlementGated = true;
 const textTrack = async (ctx) => {
   const { documentId } = ctx.params;
   const track = await queryAsset(TEXT_TRACK_MODEL, documentId, "findOne");
@@ -1550,7 +1615,7 @@ const routes = {
   }
 };
 const name = "strapi-plugin-mux-video-uploader";
-const version = "3.3.1";
+const version = "3.3.2";
 const description = "This plugin allows you to upload your content to Mux and use it with Strapi.";
 const license = "MIT";
 const type = "commonjs";
@@ -1733,7 +1798,9 @@ const muxService = () => ({
     let baseOptions = {
       keyId: playbackSigningId,
       keySecret: playbackSigningSecret,
-      expiration: type2 === "video" ? "1d" : "1m"
+      // Uniform 1d: thumbnail/storyboard tokens are baked into server-rendered pages,
+      // so a short expiry goes stale mid-session (vivido2-api#145)
+      expiration: "1d"
     };
     let params = { width: type2 === "thumbnail" ? "512" : "" };
     const token = await jwt.signPlaybackId(playbackId, {
