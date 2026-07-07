@@ -142,7 +142,9 @@ const muxService = () => ({
     let baseOptions = {
       keyId: playbackSigningId,
       keySecret: playbackSigningSecret,
-      expiration: type === 'video' ? '1d' : '1m',
+      // Uniform 1d: thumbnail/storyboard tokens are baked into server-rendered pages,
+      // so a short expiry goes stale mid-session (vivido2-api#145)
+      expiration: '1d',
     };
 
     let params = { width: type === 'thumbnail' ? '512' : '' };

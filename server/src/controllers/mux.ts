@@ -657,14 +657,112 @@ const muxWebhookHandler = async (ctx: Context) => {
   }
 };
 
+const SIGNABLE_TYPES = ['video', 'thumbnail', 'storyboard', 'animated'];
+// Storyboard is a frame grid of the whole video, so it is gated like video;
+// thumbnail/animated stay public (cards and hover previews shown to non-buyers).
+const GATED_TYPES = ['video', 'storyboard'];
+
+// Resolves the lesson/course owning an asset, preferring the given publication status.
+// Queried from the content side (documents API) so draft vs published is explicit.
+const resolveOwningContent = async (assetDocumentId: string, relations: string[], status: 'published' | 'draft') => {
+  for (const entityType of relations) {
+    const entity = await (strapi.documents as any)(`api::${entityType}.${entityType}`).findFirst({
+      status,
+      filters: { mux_asset: { documentId: { $eq: assetDocumentId } } },
+      fields: ['documentId', 'pricing', 'deleted_at'],
+      populate: { profile: { fields: ['documentId'], populate: { user: { fields: ['id'] } } } },
+    });
+    if (entity) return { entityType, entity };
+  }
+  return undefined;
+};
+
+// Tokens are only minted for stored assets; video/storyboard for paid, unpublished or
+// soft-deleted lesson/course content additionally require an admin, the owner, or (for
+// live paid content) an entitled buyer — stock signed any playback ID unauthenticated
+// (vivido2-api#50, #145).
 const signMuxPlaybackId = async (ctx: Context) => {
-  const { documentId } = ctx.params;
+  const { documentId: playbackId } = ctx.params;
   const { type } = ctx.query;
 
-  const result = await getService('mux').signPlaybackId(documentId, type as string);
+  if (typeof type !== 'string' || !SIGNABLE_TYPES.includes(type)) {
+    ctx.badRequest('Invalid or missing type');
+    return;
+  }
+
+  // The route param is a Mux playback ID, not a Strapi documentId.
+  const asset = await strapi.db.query(ASSET_MODEL).findOne({ where: { playback_id: playbackId } });
+
+  if (!asset) {
+    ctx.notFound('mux-asset.notFound');
+    return;
+  }
+
+  // Content relations exist only when the host app extends the mux-asset schema;
+  // playlist/profile-owned and unrelated assets have no entitlement model and stay public.
+  const attributes = strapi.contentType(ASSET_MODEL as any)?.attributes ?? {};
+  const contentRelations = ['lesson', 'course'].filter((relation) => relation in attributes);
+
+  if (GATED_TYPES.includes(type) && contentRelations.length > 0) {
+    const published = await resolveOwningContent(asset.documentId, contentRelations, 'published');
+    const owning = published ?? (await resolveOwningContent(asset.documentId, contentRelations, 'draft'));
+
+    if (owning) {
+      const { entity, entityType } = owning;
+      // Only live (published, not soft-deleted) content can be free or bought;
+      // drafts and deleted content are owner/admin-only regardless of pricing.
+      const isLive = Boolean(published) && !entity.deleted_at;
+      const isFree = isLive && Array.isArray(entity.pricing) && entity.pricing.includes('free');
+
+      if (!isFree) {
+        // Strapi admin-panel operators (admin auth strategy) bypass entitlement.
+        const isAdminPanel = ctx.state.auth?.strategy?.name === 'admin';
+
+        if (!isAdminPanel) {
+          const user = ctx.state.user;
+
+          if (!user) {
+            ctx.unauthorized();
+            return;
+          }
+
+          const isAdmin = user.role?.type === 'admin';
+          const isOwner = entity.profile?.user?.id === user.id;
+
+          if (!isAdmin && !isOwner) {
+            let entitled = false;
+
+            if (isLive) {
+              const entitlementService = (strapi as any).services?.['api::entitlement.entitlement'];
+
+              // Fail closed: paid content in a host app without the entitlement service stays unsigned
+              if (typeof entitlementService?.checkPaidSingle !== 'function') {
+                strapi.log.warn(
+                  'signMuxPlaybackId: api::entitlement.entitlement.checkPaidSingle unavailable — refusing to sign paid content'
+                );
+              } else {
+                entitled = await entitlementService.checkPaidSingle(user, entity.documentId, entityType);
+              }
+            }
+
+            if (!entitled) {
+              ctx.forbidden();
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const result = await getService('mux').signPlaybackId(playbackId, type);
 
   ctx.send(result);
 };
+
+// Marker for host apps: lets the vivido2-api strapi-server.ts extension detect this
+// patched plugin version and fail closed when an ungated version is installed instead.
+(signMuxPlaybackId as any).entitlementGated = true;
 
 /**
  * Returns a text track stored in Strapi so Mux can download and parse it as an asset's subtitle/captions
