@@ -159,15 +159,6 @@ const routes = [
     },
   },
   {
-    method: 'DELETE',
-    path: '/mux-video-uploader/mux-asset/:documentId',
-    handler: 'mux-asset.del',
-    config: {
-      policies: [],
-      prefix: false,
-    },
-  },
-  {
     method: 'GET',
     path: '/mux-video-uploader/mux-settings',
     handler: 'mux-settings.isConfigured',

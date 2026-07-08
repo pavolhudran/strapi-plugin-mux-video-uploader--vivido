@@ -118,7 +118,7 @@ declare const _default: {
         };
         'content-api': {
             type: string;
-            routes: ({
+            routes: {
                 method: string;
                 path: string;
                 handler: string;
@@ -127,16 +127,7 @@ declare const _default: {
                     policies: any[];
                     prefix: boolean;
                 };
-            } | {
-                method: string;
-                path: string;
-                handler: string;
-                config: {
-                    description: string;
-                    policies: any[];
-                    prefix?: undefined;
-                };
-            })[];
+            }[];
         };
     };
     services: {

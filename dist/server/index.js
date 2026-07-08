@@ -1415,15 +1415,6 @@ const routes$2 = [
     }
   },
   {
-    method: "DELETE",
-    path: "/mux-video-uploader/mux-asset/:documentId",
-    handler: "mux-asset.del",
-    config: {
-      policies: [],
-      prefix: false
-    }
-  },
-  {
     method: "GET",
     path: "/mux-video-uploader/mux-settings",
     handler: "mux-settings.isConfigured",
@@ -1590,7 +1581,10 @@ const routes$1 = [
     handler: "mux-asset.update",
     config: {
       description: "Updates a MuxAsset based on a supplied document id",
-      policies: []
+      policies: [],
+      // Match every other content-api route so the mount path is consistent (this was the only
+      // route missing it, so PUT landed under /mux-video-uploader/... while the rest were unprefixed)
+      prefix: false
     }
   },
   {
@@ -1615,7 +1609,7 @@ const routes = {
   }
 };
 const name = "strapi-plugin-mux-video-uploader";
-const version = "3.3.2";
+const version = "3.3.3";
 const description = "This plugin allows you to upload your content to Mux and use it with Strapi.";
 const license = "MIT";
 const type = "commonjs";

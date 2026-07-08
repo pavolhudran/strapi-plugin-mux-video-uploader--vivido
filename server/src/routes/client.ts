@@ -156,6 +156,9 @@ const routes = [
     config: {
       description: 'Updates a MuxAsset based on a supplied document id',
       policies: [],
+      // Match every other content-api route so the mount path is consistent (this was the only
+      // route missing it, so PUT landed under /mux-video-uploader/... while the rest were unprefixed)
+      prefix: false,
     },
   },
   {
