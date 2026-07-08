@@ -13,12 +13,6 @@ export interface UploadRequestConfig {
      * @defaultValue '1080p'
      */
     max_resolution_tier?: '2160p' | '1440p' | '1080p';
-    /**
-     * The encoding tier informs the cost, quality, and available platform features for the asset.
-     * @see {@link https://docs.mux.com/guides/use-encoding-tiers}
-     * @defaultValue 'smart'
-     */
-    encoding_tier?: 'baseline' | 'smart';
     signed?: 'true' | 'false';
 }
 declare const muxService: () => {
@@ -36,7 +30,7 @@ declare const muxService: () => {
     }): Promise<Mux.Video.Assets.Asset>;
     deleteAsset(assetId: string): Promise<boolean>;
     signPlaybackId(playbackId: string, type: string): Promise<{
-        token: string;
+        token: string & Partial<Record<import("@mux/mux-node/util/jwt-types").TypeTokenValues, string>>;
     }>;
     createAssetTextTracks(assetId: string, tracks: Mux.Video.Assets.AssetCreateTrackParams[]): Promise<Mux.Video.Assets.Track[]>;
     deleteAssetTextTracks(assetId: string, trackIds: string[]): Promise<void[]>;

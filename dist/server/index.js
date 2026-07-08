@@ -218,8 +218,7 @@ const resolveMuxAsset = async (filters) => {
     filters
   });
   const asset = muxAssets ? Array.isArray(muxAssets) ? muxAssets[0] : muxAssets : void 0;
-  if (!asset)
-    throw new Error("Unable to resolve mux-asset");
+  if (!asset) throw new Error("Unable to resolve mux-asset");
   return asset;
 };
 const queryAsset = async (model = ASSET_MODEL, id, action, opts = {}) => {
@@ -238,8 +237,8 @@ const queryAsset = async (model = ASSET_MODEL, id, action, opts = {}) => {
   }
 };
 const getConfig = async () => await strapi.config.get(`plugin::${PLUGIN_NAME}`);
-const getService = (name2) => {
-  return strapi.plugin(PLUGIN_NAME).service(name2);
+const getService = (name) => {
+  return strapi.plugin(PLUGIN_NAME).service(name);
 };
 const SUPPORTED_MUX_LANGUAGES = [
   { label: "English", code: "en", state: "Stable" },
@@ -306,7 +305,9 @@ const UploadConfig = zod.z.object({
    * @see {@link https://docs.mux.com/guides/use-video-quality-levels}
    * @defaultValue 'plus'
    */
-  video_quality: zod.z.enum(["basic", "plus"]).default("plus"),
+  // Fork deviation from upstream #99: default stays 'plus' — 'basic' silently disables
+  // MP4/static renditions for any caller that omits the field
+  video_quality: zod.z.enum(["basic", "plus", "premium"]).default("plus"),
   /**
    * Whether or not to use signed URLs, making the asset private
    * @see {@link https://docs.mux.com/guides/use-encoding-tiers}
@@ -402,12 +403,10 @@ function getMuxTextTrackUrl({
   return `https://stream.mux.com/${playback_id}/text/${track.id}.vtt${signedToken ? `?token=${signedToken}` : ""}`;
 }
 async function updateTextTracks(muxAsset2, newTracks) {
-  if (!newTracks || !muxAsset2.asset_id || !muxAsset2.playback_id)
-    return void 0;
+  if (!newTracks || !muxAsset2.asset_id || !muxAsset2.playback_id) return void 0;
   const { asset_id, playback_id } = muxAsset2;
   const { token } = await (async () => {
-    if (!muxAsset2.signed)
-      return { token: void 0 };
+    if (!muxAsset2.signed) return { token: void 0 };
     return getService("mux").signPlaybackId(playback_id, "video");
   })();
   const existingTracks = muxAsset2.asset_data?.tracks || [];
@@ -419,8 +418,7 @@ async function updateTextTracks(muxAsset2, newTracks) {
     const existingTrack = existingTracks.find(
       (t) => t.id === track.stored_track?.id && t.type === "text" && t.text_type === "subtitles"
     );
-    if (!existingTrack)
-      return [];
+    if (!existingTrack) return [];
     const isDifferent = [
       existingTrack.language_code !== track.language_code,
       existingTrack.name !== track.name,
@@ -428,8 +426,7 @@ async function updateTextTracks(muxAsset2, newTracks) {
       existingTrack.text_source !== "generated_vod" && existingTrack.closed_captions !== track.closed_captions,
       track.file?.contents
     ].some(Boolean);
-    if (!isDifferent)
-      return [];
+    if (!isDifferent) return [];
     return {
       track,
       prevId: existingTrack.id
@@ -438,21 +435,19 @@ async function updateTextTracks(muxAsset2, newTracks) {
   const alreadyInMuxWithoutFile = await Promise.all(
     updatedTracks.flatMap((t) => {
       const track_id = t.track.stored_track?.id;
-      if (t.track.file || !track_id)
-        return [];
+      if (t.track.file || !track_id) return [];
       return new Promise(async (resolve, reject) => {
         try {
           const muxTrackRes = await fetch(
             getMuxTextTrackUrl({ playback_id, track: { id: track_id }, signedToken: token })
           );
-          if (muxTrackRes.status !== 200)
-            throw new Error(muxTrackRes.statusText);
+          if (muxTrackRes.status !== 200) throw new Error(muxTrackRes.statusText);
           const contents = await muxTrackRes.text();
-          const type2 = muxTrackRes.headers.get("content-type") || "text/vtt";
+          const type = muxTrackRes.headers.get("content-type") || "text/vtt";
           const contentLength = muxTrackRes.headers.get("content-length");
           const file = TextTrackFile.parse({
             contents,
-            type: type2,
+            type,
             name: t.track.name,
             size: contentLength && !Number.isNaN(Number(contentLength)) ? Number(contentLength) : contents.length
           });
@@ -682,8 +677,8 @@ function parseRequest(ctx, bodySchema, paramsSchema, querySchema) {
   };
 }
 const processWebhookEvent = async (webhookEvent) => {
-  const { type: type2, data } = webhookEvent;
-  switch (type2) {
+  const { type, data } = webhookEvent;
+  switch (type) {
     case "video.upload.asset_created": {
       try {
         const muxAsset2 = await resolveMuxAsset({ upload_id: data.id });
@@ -1151,15 +1146,14 @@ const resolveOwningContent = async (assetDocumentId, relations, status) => {
       fields: ["documentId", "pricing", "deleted_at"],
       populate: { profile: { fields: ["documentId"], populate: { user: { fields: ["id"] } } } }
     });
-    if (entity)
-      return { entityType, entity };
+    if (entity) return { entityType, entity };
   }
   return void 0;
 };
 const signMuxPlaybackId = async (ctx) => {
   const { documentId: playbackId } = ctx.params;
-  const { type: type2 } = ctx.query;
-  if (typeof type2 !== "string" || !SIGNABLE_TYPES.includes(type2)) {
+  const { type } = ctx.query;
+  if (typeof type !== "string" || !SIGNABLE_TYPES.includes(type)) {
     ctx.badRequest("Invalid or missing type");
     return;
   }
@@ -1170,7 +1164,7 @@ const signMuxPlaybackId = async (ctx) => {
   }
   const attributes = strapi.contentType(ASSET_MODEL)?.attributes ?? {};
   const contentRelations = ["lesson", "course"].filter((relation) => relation in attributes);
-  if (GATED_TYPES.includes(type2) && contentRelations.length > 0) {
+  if (GATED_TYPES.includes(type) && contentRelations.length > 0) {
     const published = await resolveOwningContent(asset.documentId, contentRelations, "published");
     const owning = published ?? await resolveOwningContent(asset.documentId, contentRelations, "draft");
     if (owning) {
@@ -1208,7 +1202,7 @@ const signMuxPlaybackId = async (ctx) => {
       }
     }
   }
-  const result = await getService("mux").signPlaybackId(playbackId, type2);
+  const result = await getService("mux").signPlaybackId(playbackId, type);
   ctx.send(result);
 };
 signMuxPlaybackId.entitlementGated = true;
@@ -1237,14 +1231,10 @@ const mux = {
 };
 const isConfigured = async (ctx) => {
   const { accessTokenId, secretKey, webhookSigningSecret } = await getConfig();
-  if (!accessTokenId)
-    ctx.send(false);
-  else if (!secretKey)
-    ctx.send(false);
-  else if (!webhookSigningSecret)
-    ctx.send(false);
-  else
-    ctx.send(true);
+  if (!accessTokenId) ctx.send(false);
+  else if (!secretKey) ctx.send(false);
+  else if (!webhookSigningSecret) ctx.send(false);
+  else ctx.send(true);
 };
 const muxSettings = { isConfigured };
 const controllers = {
@@ -1608,113 +1598,9 @@ const routes = {
     routes: routes$1
   }
 };
-const name = "strapi-plugin-mux-video-uploader";
-const version = "3.3.3";
-const description = "This plugin allows you to upload your content to Mux and use it with Strapi.";
-const license = "MIT";
-const type = "commonjs";
-const strapi$1 = {
-  name: "mux-video-uploader",
-  displayName: "Mux Video Uploader",
-  icon: "plug",
-  description: "This plugin allows you to upload your content to Mux and use it with Strapi.",
-  kind: "plugin"
-};
-const author = {
-  name: "Erik Peña",
-  email: "erikpena@users.noreply.github.com",
-  url: "https://github.com/erikpena"
-};
-const maintainers = [
-  {
-    name: "Erik Peña",
-    email: "erikpena@users.noreply.github.com",
-    url: "https://github.com/erikpena"
-  }
-];
-const scripts = {
-  build: "strapi-plugin build",
-  "test:ts:back": "run -T tsc -p server/tsconfig.json",
-  "test:ts:front": "run -T tsc -p admin/tsconfig.json",
-  verify: "strapi-plugin verify",
-  watch: "strapi-plugin watch",
-  "watch:link": "strapi-plugin watch:link",
-  preprepare: "husky install"
-};
-const dependencies = {
-  "@mux/mux-node": "^8.8.0",
-  "@mux/mux-player-react": "^3.0.0",
-  "@mux/upchunk": "^3.4.0",
-  "@strapi/design-system": "^2.0.0-rc.12",
-  "@strapi/icons": "^2.0.0-rc.12",
-  "@strapi/utils": "^4.20.5",
-  axios: "^1.7.7",
-  "copy-to-clipboard": "^3.3.3",
-  formik: "^2.4.6",
-  "iso-639-1": "^3.1.3",
-  luxon: "^3.5.0",
-  "react-intl": "^6.7.0",
-  zod: "^3.22.4"
-};
-const devDependencies = {
-  "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.4.0",
-  "@strapi/typescript-utils": "^5.4.0",
-  "@types/luxon": "^3.4.2",
-  "@types/react": "^18.3.9",
-  "@types/react-dom": "^18.3.0",
-  husky: "^9.0.11",
-  prettier: "^3.3.3",
-  "pretty-quick": "^4.0.0",
-  react: "^18.3.1",
-  "react-dom": "^18.3.1",
-  "react-router-dom": "^6.26.2",
-  "styled-components": "^6.1.13",
-  typescript: "^5.6.2"
-};
-const peerDependencies = {
-  "@strapi/sdk-plugin": "^5.2.6",
-  "@strapi/strapi": "^5.4.0",
-  react: "^18.3.1",
-  "react-dom": "^18.3.1",
-  "react-router-dom": "^6.26.2",
-  "styled-components": "^6.1.13"
-};
-const exports$1 = {
-  "./package.json": "./package.json",
-  "./strapi-admin": {
-    types: "./dist/admin/src/index.d.ts",
-    source: "./admin/src/index.ts",
-    "import": "./dist/admin/index.mjs",
-    require: "./dist/admin/index.js",
-    "default": "./dist/admin/index.js"
-  },
-  "./strapi-server": {
-    types: "./dist/server/src/index.d.ts",
-    source: "./server/src/index.ts",
-    "import": "./dist/server/index.mjs",
-    require: "./dist/server/index.js",
-    "default": "./dist/server/index.js"
-  }
-};
-const files = [
-  "dist"
-];
+const version = "3.4.0";
 const pluginPkg = {
-  name,
-  version,
-  description,
-  license,
-  type,
-  strapi: strapi$1,
-  author,
-  maintainers,
-  scripts,
-  dependencies,
-  devDependencies,
-  peerDependencies,
-  exports: exports$1,
-  files
+  version
 };
 const getMuxClient = async () => {
   const { accessTokenId, secretKey } = await getConfig();
@@ -1742,11 +1628,10 @@ const muxService = () => ({
     corsOrigin = "*"
   }) {
     const { video } = await getMuxClient();
-    const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
     const newAssetSettings = {
-      input: uploadConfigToNewAssetInput(config2, storedTextTracks) || [],
+      inputs: uploadConfigToNewAssetInput(config2, storedTextTracks) || [],
       playback_policy: [config2.signed ? "signed" : "public"],
-      encoding_tier: encodingTier,
+      video_quality: config2.video_quality,
       max_resolution_tier: config2.max_resolution_tier
     };
     const staticRenditions = config2.static_renditions;
@@ -1766,11 +1651,10 @@ const muxService = () => ({
     storedTextTracks
   }) {
     const { video } = await getMuxClient();
-    const encodingTier = config2.video_quality === "basic" ? "baseline" : "smart";
     const assetParams = {
-      input: uploadConfigToNewAssetInput(config2, storedTextTracks, url) || [],
+      inputs: uploadConfigToNewAssetInput(config2, storedTextTracks, url) || [],
       playback_policy: [config2.signed ? "signed" : "public"],
-      encoding_tier: encodingTier,
+      video_quality: config2.video_quality,
       max_resolution_tier: config2.max_resolution_tier
     };
     const staticRenditions = config2.static_renditions;
@@ -1786,7 +1670,7 @@ const muxService = () => ({
     await video.assets.delete(assetId);
     return true;
   },
-  async signPlaybackId(playbackId, type2) {
+  async signPlaybackId(playbackId, type) {
     const { jwt } = await getMuxClient();
     const { playbackSigningSecret, playbackSigningId } = await getConfig();
     let baseOptions = {
@@ -1796,11 +1680,11 @@ const muxService = () => ({
       // so a short expiry goes stale mid-session (vivido2-api#145)
       expiration: "1d"
     };
-    let params = { width: type2 === "thumbnail" ? "512" : "" };
+    let params = { width: type === "thumbnail" ? "512" : "" };
     const token = await jwt.signPlaybackId(playbackId, {
       ...baseOptions,
       // @ts-expect-error This `type` type isn't properly exposed by the Mux SDK
-      type: type2,
+      type,
       params
     });
     return { token };
@@ -1830,4 +1714,3 @@ const index = {
   middlewares
 };
 module.exports = index;
-//# sourceMappingURL=index.js.map

@@ -85,7 +85,9 @@ export const UploadConfig = z
      * @see {@link https://docs.mux.com/guides/use-video-quality-levels}
      * @defaultValue 'plus'
      */
-    video_quality: z.enum(['basic', 'plus']).default('plus'),
+    // Fork deviation from upstream #99: default stays 'plus' — 'basic' silently disables
+    // MP4/static renditions for any caller that omits the field
+    video_quality: z.enum(['basic', 'plus', 'premium']).default('plus'),
 
     /**
      * Whether or not to use signed URLs, making the asset private
@@ -107,6 +109,8 @@ export const UploadConfig = z
 
     upload_type: z.enum(['file', 'url']).default('file'),
   })
+  // Fork deviation from upstream #99: keep the basic-tier guard — Mux rejects
+  // MP4/static-rendition params on basic-quality assets
   .transform((v) => {
     if (v.video_quality === 'basic') {
       return {

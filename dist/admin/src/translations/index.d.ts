@@ -1,6 +1,8 @@
 declare const trads: {
     ar: {};
-    cs: {};
+    cs: {
+        "Common.video_quality_premium-label": string;
+    };
     de: {};
     en: {
         "Common.plugin-title": string;
@@ -16,6 +18,7 @@ declare const trads: {
         "Common.video_quality-label": string;
         "Common.video_quality_basic-label": string;
         "Common.video_quality_plus-label": string;
+        "Common.video_quality_premium-label": string;
         "Common.url-label": string;
         "Common.url-required": string;
         "Common.save-button": string;

@@ -1,4 +1,5 @@
 import { Context } from 'koa';
+import * as Zod from 'zod';
 interface ParsedRequest<BodySchema extends Zod.Schema, ParamsSchema extends Zod.Schema, QuerySchema extends Zod.Schema> {
     body?: Zod.infer<BodySchema>;
     params?: Zod.infer<ParamsSchema>;

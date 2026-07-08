@@ -12,6 +12,7 @@
   "Common.video_quality-label": "Video quality",
   "Common.video_quality_basic-label": "Basic",
   "Common.video_quality_plus-label": "Plus",
+  "Common.video_quality_premium-label": "Premium",
   "Common.url-label": "Url",
   "Common.url-required": "No url specified",
   "Common.save-button": "Save",
@@ -21,10 +22,8 @@
   "Common.confirm-button": "Confirm",
   "Common.download-button": "Download",
   "Common.update-button": "Update",
-
   "SettingsNav.section-label": "Mux Video Uploader",
   "SettingsNav.link.settings": "Settings",
-
   "Settings.page-title": "Mux Video Uploader",
   "Settings.header": "Mux Video Uploader",
   "Settings.section-header": "Settings",
@@ -43,15 +42,12 @@
   "Settings.playback-signing-secret-label": "Playback Signing Secret",
   "Settings.playback-signing-secret-placeholder": "Playback Signing Secret",
   "Settings.playback-signing-secret-description": "Generated in the Mux Dashboard and used for signing Playback Ids",
-
   "SettingsField.tooltip-label": "Information about the field",
   "SettingsField.details-label": "Details",
-
   "SetupNeeded.page-title": "Mux Video Uploader",
   "SetupNeeded.settings": "Go to settings",
   "SetupNeeded.setup-needed": "Setup Needed",
   "SetupNeeded.setup-instructions": "In order for uploads to function, an administrator will need to complete the setup of this plugin by visiting the settings page.  Click the button below to be taken there now.",
-
   "HomePage.section-label": "Mux Video Uploader",
   "HomePage.section-description": "",
   "HomePage.new-upload-button": "Upload new assets",
@@ -59,17 +55,14 @@
   "HomePage.search-placeholder": "Search field",
   "HomePage.clear-label": "Clear search",
   "HomePage.searching": "Searching for Mux assets",
-
   "AssetCard.is-loading": "Asset is being processed",
   "AssetCard.is-error": "Asset encountered an error",
   "AssetCard.loading": "Loading",
   "AssetCard.no-aspect-ratio": "No aspect ratio",
-
   "ListPagination.previous-page": "Previous page",
   "ListPagination.next-page": "Next page",
   "ListPagination.goto-page-n": "Go to page {pageNumber}",
   "ListPagination.dots": "And {more} other pages",
-
   "ModalDetails.header": "Video Details",
   "ModalDetails.delete-confirmation-header": "Delete confirmation",
   "ModalDetails.delete-confirmation-prompt": "Are you sure you want to delete this item?",
@@ -81,15 +74,12 @@
   "ModalDetails.powered-by-mux": "Powered by mux-player.",
   "ModalDetails.read-more": "Read more about it",
   "ModalDetails.deleting": "Deleting...",
-
   "Captions.title": "Captions / subtitles",
-
   "Summary.assetId": "Asset Id",
   "Summary.uploadId": "Upload Id",
   "Summary.playbackId": "Playback Id",
   "Summary.created": "Created",
   "Summary.updated": "Updated",
-
   "ModalNewUpload.header": "New upload",
   "ModalNewUpload.close-modal": "Close modal",
   "ModalNewUpload.from-computer-tab-label": "From computer",
@@ -105,21 +95,16 @@
   "ModalNewUpload.formErrors.url": "A valid URL is required",
   "ModalNewUpload.formErrors.file": "A video or audio file is required",
   "ModalNewUpload.formErrors.title": "Required",
-
   "CustomTextTrackForm.closed-captions": "Closed captions",
   "CustomTextTrackForm.new-caption": "New caption/subtitle",
   "CustomTextTrackForm.language": "Language",
-
   "Uploading.uploading": "Uploading to Mux",
-
   "Uploaded.upload-complete": "Video uploaded successfully",
   "Uploaded.message": "The file has been successfully uploaded to Mux and is now able to be referenced by other Content Types within Strapi.",
   "Uploaded.upload-another-button": "Upload another asset",
-
   "UploadError.title": "Upload Error",
   "UploadError.message": "An error occurred while uploading the file.  Submit an issue with the following error message",
   "UploadError.issues": "File issue",
-
   "notification.changes-saved": "Changes saved",
   "notification.no-changes": "No changes made",
   "notification.error-saving": "Error while saving changes"

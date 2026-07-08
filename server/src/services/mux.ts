@@ -19,13 +19,6 @@ export interface UploadRequestConfig {
    */
   max_resolution_tier?: '2160p' | '1440p' | '1080p';
 
-  /**
-   * The encoding tier informs the cost, quality, and available platform features for the asset.
-   * @see {@link https://docs.mux.com/guides/use-encoding-tiers}
-   * @defaultValue 'smart'
-   */
-  encoding_tier?: 'baseline' | 'smart';
-
   signed?: 'true' | 'false';
 }
 
@@ -67,14 +60,12 @@ const muxService = () => ({
   }): Promise<Mux.Video.Uploads.Upload> {
     const { video } = await getMuxClient();
 
-    // @TODO - This is a workaround until Mux releases an update to their node SDK
-    // which adds the updated `video_quality` parameter
-    const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
-
-    const newAssetSettings: Mux.Video.Assets.AssetCreateParams = {
-      input: uploadConfigToNewAssetInput(config, storedTextTracks) || [],
+    // video_quality is passed natively now (upstream #99); the encoding_tier workaround is gone.
+    // AssetOptions is the type of new_asset_settings; inputs replaces the deprecated input param.
+    const newAssetSettings: Mux.Video.Assets.AssetOptions = {
+      inputs: uploadConfigToNewAssetInput(config, storedTextTracks) || [],
       playback_policy: [config.signed ? 'signed' : 'public'],
-      encoding_tier: encodingTier,
+      video_quality: config.video_quality,
       max_resolution_tier: config.max_resolution_tier,
     };
 
@@ -104,14 +95,11 @@ const muxService = () => ({
   }) {
     const { video } = await getMuxClient();
 
-    // @TODO - This is a workaround until Mux releases an update to their node SDK
-    // which adds the updated `video_quality` parameter
-    const encodingTier = config.video_quality === 'basic' ? 'baseline' : 'smart';
-
+    // inputs replaces the deprecated input param on asset creation (upstream #99)
     const assetParams: Mux.Video.Assets.AssetCreateParams = {
-      input: uploadConfigToNewAssetInput(config, storedTextTracks, url) || [],
+      inputs: uploadConfigToNewAssetInput(config, storedTextTracks, url) || [],
       playback_policy: [config.signed ? 'signed' : 'public'],
-      encoding_tier: encodingTier,
+      video_quality: config.video_quality,
       max_resolution_tier: config.max_resolution_tier,
     };
 
